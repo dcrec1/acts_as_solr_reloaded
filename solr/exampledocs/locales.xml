@@ -1,0 +1,16 @@
+<add>
+ <doc>
+   <field name="id">01</field>
+   <field name="name_t">HOUSE01</field>
+   <field name="lat">39.36</field>
+   <field name="lng">-77.4027</field>
+   <field name="text_t">zxy</field>
+ </doc>
+ <doc>
+   <field name="id">02</field>
+   <field name="name_t">HOUSE02</field>
+   <field name="lat">38.36</field>
+   <field name="lng">-77.4027</field>
+   <field name="text_t">zxy</field>
+ </doc>
+</add>

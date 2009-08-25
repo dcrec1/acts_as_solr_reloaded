@@ -1,0 +1,15 @@
+*.log
+*.log
+*_pid
+coverage/*
+coverage.data
+solr/solr/data/*
+.svn
+test/db/*.db
+test/log/*.log
+pkg/*
+*.sw?
+.DS_Store
+coverage
+rdoc
+pkg

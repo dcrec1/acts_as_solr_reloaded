@@ -1,0 +1,11 @@
+DynamicAttribute:
+  id: 1
+  #name: Description
+  #value: Very cool bike
+  #advertise_id: 1
+
+DynamicAttribute:
+  id: 2
+  #name: Price
+  #value: 500
+  #advertise_id: 1
