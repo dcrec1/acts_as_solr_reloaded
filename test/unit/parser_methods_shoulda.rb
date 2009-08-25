@@ -185,6 +185,14 @@ class ParserMethodsTest < Test::Unit::TestCase
         @parser.parse_query "continent:south", :relevance => {:tag => 5, :description => 3}
       end
 
+      should "set the relevance with simple queries" do
+        expected = "(car OR description_t:(car)^3 OR tag_t:(car)^5)"
+        ActsAsSolr::Post.expects(:execute).with {|request, core|
+          request.to_hash[:q].starts_with? expected
+        }
+        @parser.parse_query "car", :relevance => {:tag => 5, :description => 3}
+      end
+
       should "not execute anything if the query is nil" do
         ActsAsSolr::Post.expects(:execute).never
         assert_nil @parser.parse_query(nil)
@@ -320,4 +328,3 @@ class ParserMethodsTest < Test::Unit::TestCase
     end
   end
 end
-

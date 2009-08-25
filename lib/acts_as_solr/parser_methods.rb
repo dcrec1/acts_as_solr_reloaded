@@ -209,10 +209,14 @@ module ActsAsSolr #:nodoc:
 
     def add_relevance(query, relevance)
       return query if relevance.nil?
-      q = query.split(":").first.split(" ")
-      q.pop
-      return query if q.empty?
-      q = q.join ' '
+      q = if query.include? ':'
+        q = query.split(":").first.split(" ")
+        q.pop
+        return query if q.empty?
+        q.join ' '
+      else
+        query
+      end
       relevance.each do |attribute, value|
         query = "#{query} OR #{attribute}:(#{q})^#{value}"
       end
@@ -221,4 +225,3 @@ module ActsAsSolr #:nodoc:
 
   end
 end
-
