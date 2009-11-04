@@ -1,4 +1,4 @@
-# Config file for the acts_as_solr plugin.
+# Config file for the acts_as_solr_reloaded plugin.
 #
 # If you change the host or port number here, make sure you update 
 # them in your Solr config file
@@ -6,10 +6,9 @@
 development:
   url: http://127.0.0.1:8982/solr
   
+test:
+  url: http://127.0.0.1:8981/solr
+  
 production:
   url: http://127.0.0.1:8983/solr
   jvm_options: -server -d64 -Xmx1024M -Xms64M
-
-test:
-  url: http://127.0.0.1:8981/solr
-

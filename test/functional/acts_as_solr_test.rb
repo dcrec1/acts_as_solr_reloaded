@@ -325,7 +325,7 @@ class ActsAsSolrTest < Test::Unit::TestCase
 
     books.records.each { |book| assert_not_nil book.solr_score }
     assert (books.docs.first.solr_score >= 0.3 && books.docs.first.solr_score <= 0.6)
-    assert (books.docs.last.solr_score >= 0.2 && books.docs.last.solr_score <= 0.3)
+    assert (books.docs.last.solr_score < books.docs.first.solr_score)
   end
   
   # Making sure nothing breaks when html entities are inside
@@ -399,7 +399,7 @@ class ActsAsSolrTest < Test::Unit::TestCase
 
     books = Book.find_by_solr 'ruby^10 OR splinter', {:scores => true, :order => 'score desc' }
     assert (books.docs.first.solr_score >= 0.3 && books.docs.first.solr_score <= 0.6)
-    assert (books.docs.last.solr_score >= 0.2 && books.docs.last.solr_score <= 0.3)
+    assert (books.docs.last.solr_score < books.docs.first.solr_score)
   end
   
   # Search based on fields with the :date format

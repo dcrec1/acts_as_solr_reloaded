@@ -6,11 +6,11 @@ It was based on the first draft by Erik Hatcher.
 Installation
 ======
 
-    script/plugin install git://github.com/mattmatt/acts_as_solr.git
+    script/plugin install git://github.com/dcrec1/acts_as_solr_reloaded.git
 
 Requirements
 ------
-* Java Runtime Environment(JRE) 1.5 aka 5.0 [http://www.java.com/en/download/index.jsp](http://www.java.com/en/download/index.jsp)
+* Java Runtime Environment(JRE) 1.5 aka 5.0 or newer [http://www.java.com/en/download/index.jsp](http://www.java.com/en/download/index.jsp)
 * If you have libxml-ruby installed, make sure it's at least version 0.7
 
 Configuration
