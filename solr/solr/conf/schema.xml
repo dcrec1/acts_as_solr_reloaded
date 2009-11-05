@@ -16,10 +16,10 @@
  limitations under the License.
 -->
 
-<!--  
+<!--
  This is the Solr schema file. This file should be named "schema.xml" and
  should be in the conf directory under the solr home
- (i.e. ./solr/conf/schema.xml by default) 
+ (i.e. ./solr/conf/schema.xml by default)
  or located where the classloader for the Solr webapp can find it.
 
  This example schema is the recommended starting point for users.
@@ -97,13 +97,13 @@
 
 
  <fields>
-   <field name="id" type="string" indexed="true" stored="true" required="true" /> 
+   <field name="id" type="string" indexed="true" stored="true" required="true" />
    <field name="pk_i" type="integer" indexed="true" stored="true"/>
-   <field name="pk_s" type="string" indexed="true" stored="true"/>   
+   <field name="pk_s" type="string" indexed="true" stored="true"/>
    <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
 
    <dynamicField name="*_i" type="integer" indexed="true" stored="false"/>
-   <dynamicField name="*_t" type="text" indexed="true" stored="false"/>
+   <dynamicField name="*_t" type="text" indexed="true" stored="true"/>
    <dynamicField name="*_f" type="float" indexed="true" stored="false"/>
    <dynamicField name="*_b" type="boolean" indexed="true" stored="false"/>
    <dynamicField name="*_d" type="date" indexed="true" stored="false"/>
@@ -114,7 +114,7 @@
    <dynamicField name="*_s_mv" type="string" indexed="true" stored="false" multiValued="true"/>
    <dynamicField name="*_zh_text" type="text_zh" indexed="true" stored="false" multiValued="true"/>
    <dynamicField name="*_display" type="text" indexed="false" stored="true" multiValued="true"/>
-   
+
    <field name="lat" type="sdouble" indexed="true" stored="true"/><!-- must match the latField in solrconfig.xml -->
    <field name="lng" type="sdouble" indexed="true" stored="true"/><!-- must match the lngField in solrconfig.xml -->
    <field name="geo_distance" type="sdouble"/> <!-- Optional but used for distributed searching -->
@@ -129,3 +129,4 @@
  <solrQueryParser defaultOperator="AND"/>
 
 </schema>
+

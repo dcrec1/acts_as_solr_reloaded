@@ -4,7 +4,9 @@ module ActsAsSolr #:nodoc:
 
     # Method used by mostly all the ClassMethods when doing a search
     def parse_query(query=nil, options={}, models=nil)
-      valid_options = [:offset, :limit, :facets, :models, :results_format, :order, :scores, :operator, :include, :lazy, :joins, :select, :core, :around, :relevance]
+      valid_options = [ :offset, :limit, :facets, :models, :results_format, :order,
+                                          :scores, :operator, :include, :lazy, :joins, :select, :core,
+                                          :around, :relevance, :highlight]
       query_options = {}
 
       return nil if (query.nil? || query.strip == '')
@@ -76,6 +78,16 @@ module ActsAsSolr #:nodoc:
         order = options[:order].split(/\s*,\s*/).collect{|e| e.gsub(/\s+/,'_t ').gsub(/\bscore_t\b/, 'score')  }.join(',') if options[:order]
         query_options[:query] = replace_types([query])[0] # TODO adjust replace_types to work with String or Array
 
+            if options[:highlight]
+            query_options[:highlighting] = {}
+            query_options[:highlighting][:field_list] = []
+            query_options[:highlighting][:field_list] << options[:highlight][:fields].collect {|k| "#{k}_t"} if options[:highlight][:fields]
+            query_options[:highlighting][:require_field_match] =  options[:highlight][:require_field_match] if options[:highlight][:require_field_match]
+            query_options[:highlighting][:max_snippets] = options[:highlight][:max_snippets] if options[:highlight][:max_snippets]
+            query_options[:highlighting][:prefix] = options[:highlight][:prefix] if options[:highlight][:prefix]
+            query_options[:highlighting][:suffix] = options[:highlight][:suffix] if options[:highlight][:suffix]
+           end
+
         # TODO: set the sort parameter instead of the old ;order. style.
         query_options[:sort] = replace_types([order], false)[0] if options[:order]
 
@@ -118,8 +130,16 @@ module ActsAsSolr #:nodoc:
 
       add_scores(result, solr_data) if configuration[:format] == :objects && options[:scores]
 
+      highlighted = {}
+      solr_data.highlighting.map do |x,y|
+        e={}
+        y1=y.map{|x1,y1| e[x1.gsub(/_[^_]*/,"")]=y1} unless y.nil?
+        highlighted[x.gsub(/[^:]*:/,"").to_i]=e
+        end unless solr_data.highlighting.nil?
+
       results.update(:facets => solr_data.data['facet_counts']) if options[:facets]
       results.update({:docs => result, :total => solr_data.total_hits, :max_score => solr_data.max_score, :query_time => solr_data.data['responseHeader']['QTime']})
+      results.update({:highlights=>highlighted})
       SearchResults.new(results)
     end
 
@@ -225,3 +245,4 @@ module ActsAsSolr #:nodoc:
 
   end
 end
+

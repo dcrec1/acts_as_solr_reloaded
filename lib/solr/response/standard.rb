@@ -13,7 +13,7 @@
 class Solr::Response::Standard < Solr::Response::Ruby
   FacetValue = Struct.new(:name, :value)
   include Enumerable
-  
+
   def initialize(ruby_code)
     super
     @response = @data['response']
@@ -35,7 +35,7 @@ class Solr::Response::Standard < Solr::Response::Ruby
   def max_score
     @response['maxScore']
   end
-  
+
   # TODO: consider the use of json.nl parameter
   def field_facets(field)
     facets = []
@@ -43,14 +43,18 @@ class Solr::Response::Standard < Solr::Response::Ruby
     Solr::Util.paired_array_each(values) do |key, value|
       facets << FacetValue.new(key, value)
     end
-    
+
     facets
   end
-  
+
   def highlighted(id, field)
     @data['highlighting'][id.to_s][field.to_s] rescue nil
   end
-  
+
+  def highlighting
+    @data['highlighting']
+  end
+
   # supports enumeration of hits
   # TODO revisit - should this iterate through *all* hits by re-requesting more?
   def each
@@ -58,3 +62,4 @@ class Solr::Response::Standard < Solr::Response::Ruby
   end
 
 end
+
