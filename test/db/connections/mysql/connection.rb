@@ -3,8 +3,9 @@ ActiveRecord::Base.logger = Logger.new("debug.log")
 
 ActiveRecord::Base.establish_connection(
   :adapter  => "mysql",
-  :username => MYSQL_USER,
+  :username => "root",
+  :password => "rotz2od",
   :encoding => "utf8",
-  :database => "actsassolr_tests"
+  :database => "actsassolr_test"
 )
 

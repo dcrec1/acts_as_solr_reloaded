@@ -1,7 +1,7 @@
 class CreateAdvertises < ActiveRecord::Migration
   def self.up
     create_table :advertises do |t|
-
+      t.column :description, :string
       t.timestamps
     end
   end
@@ -10,3 +10,4 @@ class CreateAdvertises < ActiveRecord::Migration
     drop_table :advertises
   end
 end
+

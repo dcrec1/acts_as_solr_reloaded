@@ -1,5 +1,12 @@
 car:
   id: 1
+  description: Car
 
 house:
   id: 2
+  description: House
+
+bike:
+  id: 3
+  description: Bike
+

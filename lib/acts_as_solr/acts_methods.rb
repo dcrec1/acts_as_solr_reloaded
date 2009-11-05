@@ -1,33 +1,33 @@
 module ActsAsSolr #:nodoc:
-  
+
   module ActsMethods
-    
+
     # declares a class as solr-searchable
-    # 
+    #
     # ==== options:
     # fields:: This option can be used to specify only the fields you'd
-    #          like to index. If not given, all the attributes from the 
-    #          class will be indexed. You can also use this option to 
+    #          like to index. If not given, all the attributes from the
+    #          class will be indexed. You can also use this option to
     #          include methods that should be indexed as fields
-    # 
+    #
     #           class Movie < ActiveRecord::Base
     #             acts_as_solr :fields => [:name, :description, :current_time]
     #             def current_time
     #               Time.now.to_s
     #             end
     #           end
-    #          
+    #
     #          Each field passed can also be a hash with the value being a field type
-    # 
+    #
     #           class Electronic < ActiveRecord::Base
     #             acts_as_solr :fields => [{:price => :range_float}]
     #             def current_time
     #               Time.now
     #             end
     #           end
-    # 
+    #
     #          The field types accepted are:
-    # 
+    #
     #          :float:: Index the field value as a float (ie.: 12.87)
     #          :integer:: Index the field value as an integer (ie.: 31)
     #          :boolean:: Index the field value as a boolean (ie.: true/false)
@@ -36,9 +36,9 @@ module ActsAsSolr #:nodoc:
     #                    filters as a regular text field
     #          :range_integer:: Index the field value for integer range queries (ie.:[5 TO 20])
     #          :range_float:: Index the field value for float range queries (ie.:[14.56 TO 19.99])
-    # 
+    #
     #          Setting the field type preserves its original type when indexed
-    # 
+    #
     #          The field may also be passed with a hash value containing options
     #
     #          class Author < ActiveRecord::Base
@@ -55,33 +55,33 @@ module ActsAsSolr #:nodoc:
     #
     # additional_fields:: This option takes fields to be include in the index
     #                     in addition to those derived from the database. You
-    #                     can also use this option to include custom fields 
+    #                     can also use this option to include custom fields
     #                     derived from methods you define. This option will be
     #                     ignored if the :fields option is given. It also accepts
     #                     the same field types as the option above
-    # 
+    #
     #                      class Movie < ActiveRecord::Base
     #                       acts_as_solr :additional_fields => [:current_time]
     #                       def current_time
     #                         Time.now.to_s
     #                       end
     #                      end
-    # 
+    #
     # exclude_fields:: This option taks an array of fields that should be ignored from indexing:
-    # 
+    #
     #                    class User < ActiveRecord::Base
     #                      acts_as_solr :exclude_fields => [:password, :login, :credit_card_number]
     #                    end
-    # 
-    # include:: This option can be used for association indexing, which 
-    #           means you can include any :has_one, :has_many, :belongs_to 
+    #
+    # include:: This option can be used for association indexing, which
+    #           means you can include any :has_one, :has_many, :belongs_to
     #           and :has_and_belongs_to_many association to be indexed:
-    # 
+    #
     #            class Category < ActiveRecord::Base
     #              has_many :books
     #              acts_as_solr :include => [:books]
     #            end
-    # 
+    #
     #           Each association may also be specified as a hash with an option hash as a value
     #
     #           class Book < ActiveRecord::Base
@@ -111,19 +111,19 @@ module ActsAsSolr #:nodoc:
     #
     # facets:: This option can be used to specify the fields you'd like to
     #          index as facet fields
-    # 
+    #
     #           class Electronic < ActiveRecord::Base
-    #             acts_as_solr :facets => [:category, :manufacturer]  
+    #             acts_as_solr :facets => [:category, :manufacturer]
     #           end
-    # 
+    #
     # boost:: You can pass a boost (float) value that will be used to boost the document and/or a field. To specify a more
     #         boost for the document, you can either pass a block or a symbol. The block will be called with the record
     #         as an argument, a symbol will result in the according method being called:
-    # 
+    #
     #           class Electronic < ActiveRecord::Base
     #             acts_as_solr :fields => [{:price => {:boost => 5.0}}], :boost => 10.0
     #           end
-    # 
+    #
     #           class Electronic < ActiveRecord::Base
     #             acts_as_solr :fields => [{:price => {:boost => 5.0}}], :boost => proc {|record| record.id + 120*37}
     #           end
@@ -132,14 +132,14 @@ module ActsAsSolr #:nodoc:
     #             acts_as_solr :fields => [{:price => {:boost => :price_rating}}], :boost => 10.0
     #           end
     #
-    # if:: Only indexes the record if the condition evaluated is true. The argument has to be 
-    #      either a symbol, string (to be eval'ed), proc/method, or class implementing a static 
+    # if:: Only indexes the record if the condition evaluated is true. The argument has to be
+    #      either a symbol, string (to be eval'ed), proc/method, or class implementing a static
     #      validation method. It behaves the same way as ActiveRecord's :if option.
-    # 
+    #
     #        class Electronic < ActiveRecord::Base
     #          acts_as_solr :if => proc{|record| record.is_active?}
     #        end
-    # 
+    #
     # offline:: Assumes that your using an outside mechanism to explicitly trigger indexing records, e.g. you only
     #           want to update your index through some asynchronous mechanism. Will accept either a boolean or a block
     #           that will be evaluated before actually contacting the index for saving or destroying a document. Defaults
@@ -153,11 +153,11 @@ module ActsAsSolr #:nodoc:
     #             end
     #
     # auto_commit:: The commit command will be sent to Solr only if its value is set to true:
-    # 
+    #
     #                 class Author < ActiveRecord::Base
     #                   acts_as_solr :auto_commit => false
     #                 end
-    # 
+    #
     # dynamic_attributes: Default false. When true, requires a has_many relationship to a DynamicAttribute
     #                     (:name, :value) model. Then, all dynamic attributes will be mapped as normal attributes
     #                    in Solr, so you can filter like this: Model.find_by_solr "#{dynamic_attribute.name}:Lorem"
@@ -193,7 +193,7 @@ module ActsAsSolr #:nodoc:
       @@configuration = nil unless defined?(@@configuration)
       @@solr_configuration = nil unless defined?(@@solr_configuration)
       @@deferred_solr_configuration = nil unless defined?(@@deferred_solr_configuration)
-      
+
       def self.configuration
         return @@configuration if @@configuration
         process_deferred_solr_configuration
@@ -291,14 +291,14 @@ module ActsAsSolr #:nodoc:
     def get_field_value(field)
       field_name, options = determine_field_name_and_options(field)
       configuration[:solr_fields][field_name] = options
-      
+
       define_method("#{field_name}_for_solr".to_sym) do
         begin
           value = self[field_name] || self.instance_variable_get("@#{field_name.to_s}".to_sym) || self.send(field_name.to_sym)
-          case options[:type] 
-            # format dates properly; return nil for nil dates 
+          case options[:type]
+            # format dates properly; return nil for nil dates
             when :date
-              value ? (value.respond_to?(:utc) ? value.utc : value).strftime("%Y-%m-%dT%H:%M:%SZ") : nil 
+              value ? (value.respond_to?(:utc) ? value.utc : value).strftime("%Y-%m-%dT%H:%M:%SZ") : nil
             else value
           end
         rescue
@@ -308,16 +308,16 @@ module ActsAsSolr #:nodoc:
         end
       end
     end
-    
+
     def process_fields(raw_field)
       if raw_field.respond_to?(:each)
         raw_field.each do |field|
           next if configuration[:exclude_fields].include?(field)
           get_field_value(field)
-        end                
+        end
       end
     end
-    
+
     def process_includes(includes)
       if includes.respond_to?(:each)
         includes.each do |assoc|
@@ -340,7 +340,7 @@ module ActsAsSolr #:nodoc:
         [field, {:type => type_for_field(field)}]
       end
     end
-    
+
     def type_for_field(field)
       if configuration[:facets] && configuration[:facets].include?(field)
         :facet
@@ -357,3 +357,4 @@ module ActsAsSolr #:nodoc:
     end
   end
 end
+
