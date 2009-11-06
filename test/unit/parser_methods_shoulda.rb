@@ -15,6 +15,7 @@ class ParserMethodsTest < Test::Unit::TestCase
         @results.stubs(:total_hits).returns(2)
         @results.stubs(:hits).returns([])
         @results.stubs(:max_score).returns 2.1
+        @results.stubs(:highlighting).returns []
         @results.stubs(:data).returns({"responseHeader" => {"QTime" => "10.2"}})
       end
 
@@ -162,13 +163,6 @@ class ParserMethodsTest < Test::Unit::TestCase
         @parser.parse_query "foo", :limit => 10, :offset => 20
       end
 
-      should "set the operator" do
-        ActsAsSolr::Post.expects(:execute).with {|request, core|
-          "OR" == request.to_hash["q.op"]
-        }
-        @parser.parse_query "foo", :operator => :or
-      end
-
       should "set the relevancy of the specified fields and non-filtered terms" do
         expected = "(aeroplane brasil continent_t:south OR description_t:(aeroplane brasil)^3 OR tag_t:(aeroplane brasil)^5)"
         ActsAsSolr::Post.expects(:execute).with {|request, core|
@@ -235,6 +229,22 @@ class ParserMethodsTest < Test::Unit::TestCase
         }
         @parser.parse_query "foo"
       end
+
+      should "add highlight options" do
+        ActsAsSolr::Post.expects(:execute).with {|request, core|
+          request.to_hash[:hl] == "true"
+          request.to_hash["hl.fl"] == "title_t"
+        }
+        @parser.parse_query "car", :highlight => {:fields => "title"}
+      end
+
+      should "set the operator" do
+        ActsAsSolr::Post.expects(:execute).with {|request, core|
+          "OR" == request.to_hash["q.op"]
+      }
+        @parser.parse_query "foo", :operator => :or
+      end
+
 
       context "with the around option" do
         should "set the qt as geo" do
@@ -328,3 +338,4 @@ class ParserMethodsTest < Test::Unit::TestCase
     end
   end
 end
+
