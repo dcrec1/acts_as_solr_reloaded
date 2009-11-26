@@ -1,3 +1,6 @@
+require 'acts_as_solr/dynamic_attribute'
+require 'acts_as_solr/local'
+
 module ActsAsSolr #:nodoc:
   
   module InstanceMethods

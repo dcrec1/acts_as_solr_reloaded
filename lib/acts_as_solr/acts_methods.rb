@@ -171,6 +171,9 @@ module ActsAsSolr #:nodoc:
       include ParserMethods
 
       define_solr_configuration_methods
+      
+      acts_as_dynamic_attributes if options[:dynamic_attributes]
+      acts_as_local if options[:spatial]
 
       after_save    :solr_save
       after_destroy :solr_destroy
@@ -181,7 +184,7 @@ module ActsAsSolr #:nodoc:
         process_acts_as_solr(options, solr_options)
       end
     end
-
+    
     def process_acts_as_solr(options, solr_options)
       process_solr_options(options, solr_options)
     end

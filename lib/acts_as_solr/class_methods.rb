@@ -237,5 +237,4 @@ module ActsAsSolr #:nodoc:
       logger.info items_processed > 0 ? "Index for #{self.name} has been rebuilt" : "Nothing to index for #{self.name}"
     end
   end
-  
 end
