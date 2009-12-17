@@ -172,8 +172,8 @@ module ActsAsSolr #:nodoc:
 
       define_solr_configuration_methods
       
-      acts_as_dynamic_attributes if options[:dynamic_attributes]
-      acts_as_local if options[:spatial]
+      has_many :dynamic_attributes, :as => "dynamicable" if options[:dynamic_attributes]
+      has_one :local, :as => "localizable" if options[:spatial]
 
       after_save    :solr_save
       after_destroy :solr_destroy
