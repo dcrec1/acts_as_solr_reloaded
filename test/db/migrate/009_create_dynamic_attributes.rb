@@ -1,10 +1,10 @@
 class CreateDynamicAttributes < ActiveRecord::Migration
   def self.up
     create_table :dynamic_attributes do |t|
-      t.references :advertise
+      t.integer :dynamicable_id
+      t.string  :dynamicable_type
       t.string :name
-      t.string :value
-
+      t.text :value
       t.timestamps
     end
   end

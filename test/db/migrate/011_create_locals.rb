@@ -1,11 +1,11 @@
 class CreateLocals < ActiveRecord::Migration
   def self.up
     create_table :locals do |t|
-      t.string :longitude
-      t.string :latitude
-      t.references :advertise
-      
-      t.timestamps
+       t.integer :localizable_id
+       t.string  :localizable_type
+       t.string :latitude
+       t.string :longitude
+       t.timestamps
     end
   end
 

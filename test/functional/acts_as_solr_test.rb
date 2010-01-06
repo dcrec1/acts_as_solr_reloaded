@@ -10,8 +10,8 @@ class ActsAsSolrTest < Test::Unit::TestCase
   Advertise.first.dynamic_attributes.create! :name => 'Price', :value => '1000'
 
   Local.delete_all
-  Local.create! :advertise_id => 1, :longitude => '-77.4027', :latitude => '39.36'
-  Local.create! :advertise_id => 2, :longitude => '77.4027',  :latitude => '-38.36'
+  Local.create! :localizable => Advertise.find(1), :longitude => '-77.4027', :latitude => '39.36'
+  Local.create! :localizable => Advertise.find(2), :longitude => '77.4027',  :latitude => '-38.36'
 
   # Inserting new data into Solr and making sure it's getting indexed
   def test_insert_new_data
@@ -454,7 +454,7 @@ class ActsAsSolrTest < Test::Unit::TestCase
     assert_equal 1, records.total
   end
 
-  def test_records_wiht_highlights_are_returned_porperly
+  def test_records_wiht_highlights_are_returned_properly
     records = Book.find_by_solr "ruby", :highlight => { :fields => "name" }
     expected = {"name"=>["<em>Ruby</em> for Dummies"]}
     assert_equal expected, records.highlights.values.first
