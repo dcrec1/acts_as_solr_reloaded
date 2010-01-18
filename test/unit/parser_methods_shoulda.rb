@@ -1,7 +1,5 @@
 require File.expand_path("#{File.dirname(__FILE__)}/test_helper")
 
-class ActsAsSolr::Post; end
-
 class ParserMethodsTest < Test::Unit::TestCase
 
   context "With a parser instance" do
@@ -338,4 +336,3 @@ class ParserMethodsTest < Test::Unit::TestCase
     end
   end
 end
-

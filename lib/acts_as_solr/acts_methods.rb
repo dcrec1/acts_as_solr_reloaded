@@ -171,7 +171,8 @@ module ActsAsSolr #:nodoc:
       include ParserMethods
 
       define_solr_configuration_methods
-      
+
+      acts_as_taggable_on :tags if options[:taggable]
       has_many :dynamic_attributes, :as => "dynamicable" if options[:dynamic_attributes]
       has_one :local, :as => "localizable" if options[:spatial]
 
@@ -184,7 +185,7 @@ module ActsAsSolr #:nodoc:
         process_acts_as_solr(options, solr_options)
       end
     end
-    
+
     def process_acts_as_solr(options, solr_options)
       process_solr_options(options, solr_options)
     end
@@ -360,4 +361,3 @@ module ActsAsSolr #:nodoc:
     end
   end
 end
-
