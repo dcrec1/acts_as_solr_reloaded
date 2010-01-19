@@ -9,6 +9,10 @@ This plugin adds full text search capabilities and many other nifty features fro
 * geolocation
 * relevance
 
+Watch this screencast for a short demo of the latests features:
+
+http://www.vimeo.com/8728276
+
 == INSTALLATION
 
     script/plugin install git://github.com/dcrec1/acts_as_solr_reloaded.git
