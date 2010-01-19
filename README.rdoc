@@ -1,107 +1,89 @@
-= acts_as_solr Rails plugin
+= DESCRIPTION
 
-This plugin adds full text search capabilities and many other nifty features from Apache's Solr[http://lucene.apache.org/solr/] to any Rails model.
-It was based on the first draft by Erik Hatcher.
+This plugin adds full text search capabilities and many other nifty features from Apache's Solr[http://lucene.apache.org/solr/] to any Rails model, like:
 
-== Current Release
+* faceting
+* dynamic attributes
+* integration with acts_as_taggable_on
+* highlighting
+* geolocation
+* relevance
 
-There is no numbered release yet, but the master branch is always considered stable.
+== INSTALLATION
 
-== Support
+    script/plugin install git://github.com/dcrec1/acts_as_solr_reloaded.git
 
-Check the project website[http://mattmatt.github.com/acts_as_solr] or stop by the Google Group[http://groups.google.com/group/acts_as_solr]. Send bug reports through GitHub[http://github.com/mattmatt/acts_as_solr/issues].
-
-== Changes
-
-Please refer to the CHANGELOG[http://github.com/mattmatt/acts_as_solr/blob/master/CHANGE_LOG]
-
-== Installation
-
-For Rails >= 2.1:
-
-     script/plugin install git://github.com/mattmatt/acts_as_solr.git
-
-For Rails < 2.1:
-
-     cd vendor/plugins
-     git clone git://github.com/mattmatt/acts_as_solr.git
-     rm -rf acts_as_solr/.git
-
-Make sure you copy vendor/plugins/acts_as_solr/config/solr.yml to your Rails
-application's config directory, when you install via git clone.
-
-Here is an example solr.yml configuration:
-
-     # Config file for the acts_as_solr plugin.
-     #
-     # If you change the host or port number here, make sure you update
-     # them in your Solr config file
-
-     development:
-       url: http://127.0.0.1:8982/solr
-
-     production:
-       url: http://127.0.0.1:8983/solr
-       jvm_options: -server -d64 -Xmx1024M -Xms64M
-
-     test:
-       url: http://127.0.0.1:8981/solr
-
-
-== Requirements
+== REQUIREMENTS
 
 * Java Runtime Environment(JRE) 1.5 aka 5.0 [http://www.java.com/en/download/index.jsp](http://www.java.com/en/download/index.jsp)
 * If you have libxml-ruby installed, make sure it's at least version 0.7
 
-== Configuration
+== CONFIGURATION
 
-If you are using acts_as_solr as a Rails plugin, everything is configured to work out of the box. You can use `rake solr:start` and `rake solr:stop`
+If you are using acts_as_solr_reloaded as a Rails plugin, everything is configured to work out of the box. You can use `rake solr:start` and `rake solr:stop`
 to start and stop the Solr web server (an embedded Jetty). If the default JVM options aren't suitable for
-your environment, you can configure them in solr.yml with the option `jvm_options`. There is a default
+your environment, you can configure them in config/solr.yml with the option `jvm_options`. There is a default
 set for the production environment to have some more memory available for the JVM than the defaults, but
 feel free to change them to your liking.
 
-If you are using acts_as_solr as a gem, create a file named lib/tasks/acts_as_solr.rake:
+If you are using acts_as_solr_reloaded as a gem, create a file named lib/tasks/acts_as_solr.rake:
 
      require "acts_as_solr/tasks"
 
+== USAGE
 
-== Basic Usage
-
-# Just include the line below to any of your ActiveRecord models:
+Just include the line below to any of your ActiveRecord models:
   acts_as_solr
 
-# Or if you want, you can specify only the fields that should be indexed:
+Or if you want, you can specify only the fields that should be indexed:
   acts_as_solr :fields => [:name, :author]
 
-# Then to find instances of your model, just do:
-  Model.find_by_solr(query) #query is a string representing your query
+Then to find instances of your model, just do:
+  Model.search(query) #query is a string representing your query
+  
+Case you want to use dynamic attributes or geolocalization, you can use this generators that setup the database:
 
-# Please see ActsAsSolr::ActsMethods for a complete info
+  script/generate dynamic_attributes_migration
+  script/generate local_migration
+  
+and then configure your model like this:
 
-== acts_as_solr in your tests
+  acts_as_solr :dynamic_attributes => true,
+               :spatial => true
+               
+If you want to integrate the model with acts_as_taggable_on, just add the option :taggable => true :
 
-To test code that uses acts_as_solr you must start a Solr server for the test environment. You can do that with 
+  acts_as_solr :taggable => true
+
+Please see ActsAsSolr::ActsMethods for a complete info
+
+== TESTING
+
+To test code that uses acts_as_solr_reloaded you must start a Solr server for the test environment. You can do that with 
 
     rake solr:start RAILS_ENV=test
 
-However, if you would like to mock out Solr calls so that a Solr server is not needed (and your tests will run much faster), just add this to your `test_helper.rb` or similar:
+== LICENSE
 
-    class ActsAsSolr::Post
-      def self.execute(request)
-        true
-      end
-    end
+(The MIT License)
 
-(via[http://www.subelsky.com/2007/10/actsassolr-capistranhttpwwwbloggercomim.html#c1646308013209805416])
+Copyright © 2010
 
-== Authors
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+‘Software’), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
 
-Erik Hatcher: First draft
-Thiago Jackiw: Previous developer
-Luke Francl: Current developer
-Mathias Meyer: Current developer
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
 
-== Release Information
-
-Released under the MIT license.
+THE SOFTWARE IS PROVIDED ‘AS IS’, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
