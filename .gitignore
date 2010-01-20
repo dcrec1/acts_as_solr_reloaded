@@ -13,3 +13,5 @@ pkg/*
 coverage
 rdoc
 pkg
+acts_as_solr_reloaded-*.gem
+acts_as_solr_reloaded.gemspec

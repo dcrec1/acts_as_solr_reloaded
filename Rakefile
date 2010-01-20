@@ -22,23 +22,23 @@ namespace :test do
 
     Rake::Task["test:migrate"].invoke
   end
-  
+
   desc 'Measures test coverage using rcov'
   task :rcov => :setup do
     rm_f "coverage"
     rm_f "coverage.data"
     rcov = "rcov --rails --aggregate coverage.data --text-summary -Ilib"
-    
+
     system("#{rcov} --html #{Dir.glob('test/**/*_shoulda.rb').join(' ')}")
     system("open coverage/index.html") if PLATFORM['darwin']
   end
-  
+
   desc 'Runs the functional tests, testing integration with Solr'
   Rake::TestTask.new('functional' => :setup) do |t|
     t.pattern = "test/functional/*_test.rb"
     t.verbose = true
   end
-  
+
   desc "Unit tests"
   Rake::TestTask.new(:unit) do |t|
     t.libs << 'test/unit'
@@ -57,43 +57,15 @@ end
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |s|
-    s.name = "muck-solr"
-    s.summary = "This gem adds full text search capabilities and many other nifty features from Apache�s Solr to any Rails model. I'm currently rearranging the test suite to include a real unit test suite, and adding a few features I need myself."
-    s.email = "meyer@paperplanes.de"
-    s.homepage = "http://github.com/mattmatt/acts_as_solr"
-    s.description = "This gem adds full text search capabilities and many other nifty features from Apache�s Solr to any Rails model. I'm currently rearranging the test suite to include a real unit test suite, and adding a few features I need myself."
-    s.authors = ["Mathias Meyer, Joel Duffin, Justin Ball"]
-    s.rubyforge_project = 'muck-solr'
+    s.name = "acts_as_solr_reloaded"
+    s.summary = "This gem adds full text search capabilities and many other nifty features from Apache Solr to any Rails model."
+    s.email = "dc.rec1@gmail.com"
+    s.homepage = "http://github.com/dcrec1/acts_as_solr_reloaded"
+    s.description = "This gem adds full text search capabilities and many other nifty features from Apache Solr to any Rails model."
+    s.authors = ["Diego Carrion"]
     s.files =  FileList["[A-Z]*", "{bin,generators,config,lib,solr}/**/*"] +
       FileList["test/**/*"].reject {|f| f.include?("test/log")}.reject {|f| f.include?("test/tmp")}
   end
 rescue LoadError
-  puts "Jeweler, or one of its dependencies, is not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
-end
-
-# rubyforge tasks
-begin
-  require 'rake/contrib/sshpublisher'
-  namespace :rubyforge do
-
-    desc "Release gem and RDoc documentation to RubyForge"
-    task :release => ["rubyforge:release:gem", "rubyforge:release:docs"]
-
-    namespace :release do
-      desc "Publish RDoc to RubyForge."
-      task :docs => [:rdoc] do
-        config = YAML.load(
-            File.read(File.expand_path('~/.rubyforge/user-config.yml'))
-        )
-
-        host = "#{config['username']}@rubyforge.org"
-        remote_dir = "/var/www/gforge-projects/muck-solr/"
-        local_dir = 'rdoc'
-
-        Rake::SshDirPublisher.new(host, remote_dir, local_dir).upload
-      end
-    end
-  end
-rescue LoadError
-  puts "Rake SshDirPublisher is unavailable or your rubyforge environment is not configured."
+  puts "Jeweler, or one of its dependencies, is not available. Install it with: sudo gem install jeweler"
 end
