@@ -12,6 +12,7 @@ require File.expand_path("#{dir}/solr_instance")
 require File.expand_path("#{dir}/parser_instance")
 require 'erb'
 require 'ostruct'
+require 'mongo_mapper'
 
 if RUBY_VERSION =~ /^1\.9/
   puts "\nRunning the unit test suite doesn't as of yet work with Ruby 1.9, because Mocha hasn't yet been updated to use minitest."

@@ -359,5 +359,9 @@ module ActsAsSolr #:nodoc:
         :text
       end
     end
+    
+    def columns_hash
+      super rescue keys
+    end
   end
 end

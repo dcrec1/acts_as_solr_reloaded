@@ -47,6 +47,12 @@ class ActsMethodsTest < Test::Unit::TestCase
 
   class NotTaggable < Abstract
   end
+  
+  class Mapper
+    include MongoMapper::Document
+    extend ActsAsSolr::ActsMethods
+    acts_as_solr
+  end
 
   should "define the model as taggable if taggable is true" do
     assert Taggable.taggable?
