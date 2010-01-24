@@ -3,6 +3,14 @@ require File.expand_path("#{File.dirname(__FILE__)}/test_helper")
 class CommonMethodsTest < Test::Unit::TestCase
   include ActsAsSolr::CommonMethods
   
+  class Mongo
+    include MongoMapper::Document
+    
+    def id
+      15
+    end
+  end
+  
   class << self
     def primary_key
       "id"
@@ -104,8 +112,15 @@ class CommonMethodsTest < Test::Unit::TestCase
   end
   
   context "when determining the record id" do
-    should "return the primary key value" do
-      assert_equal 10, record_id(self)
+    context "on ActiveRecord" do
+      should "return the primary key value" do
+        assert_equal 10, record_id(self)
+      end
+    end
+    context "on MongoMapper" do
+      should "return the id value" do
+        assert_equal 15, record_id(Mongo.new)
+      end
     end
   end
 end

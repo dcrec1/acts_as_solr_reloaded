@@ -81,9 +81,7 @@ module ActsAsSolr #:nodoc:
     
     # Returns the id for the given instance
     def record_id(object)
-      eval "object.#{object.class.primary_key}"
+      eval "object.#{object.class.primary_key rescue 'id'}"
     end
-    
   end
-  
 end
