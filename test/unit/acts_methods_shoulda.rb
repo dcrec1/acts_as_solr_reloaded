@@ -61,6 +61,10 @@ class ActsMethodsTest < Test::Unit::TestCase
   should "not define the model as taggable if taggable is not true" do
     assert !NotTaggable.taggable?
   end
+  
+  should "define the type of a MongoMapper document id as integer" do
+    assert_equal :integer, Mapper.configuration[:solr_fields][:_id][:type]
+  end
 
   context "when getting field values" do
     setup do

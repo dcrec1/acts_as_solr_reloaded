@@ -349,11 +349,15 @@ module ActsAsSolr #:nodoc:
       if configuration[:facets] && configuration[:facets].include?(field)
         :facet
       elsif column = columns_hash[field.to_s]
-        case column.type
-        when :string then :text
-        when :datetime then :date
-        when :time then :date
-        else column.type
+        if column.type.class.eql? Class
+          :integer
+        else
+          case column.type
+          when :string then :text
+          when :datetime then :date
+          when :time then :date
+          else column.type
+          end
         end
       else
         :text
