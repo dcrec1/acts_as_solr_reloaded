@@ -174,6 +174,15 @@ module ActsAsSolr #:nodoc:
           def self.primary_key
             'id'
           end
+          
+          def self.find(*args)
+            if args.first.instance_of? Array
+              ids = args.first.map { |id| Mongo::ObjectID.from_string(id) }
+              super :all, :conditions => {primary_key => ids}
+            else
+              super *args
+            end
+          end
         end
       end
 
