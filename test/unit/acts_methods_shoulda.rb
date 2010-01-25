@@ -67,8 +67,8 @@ class ActsMethodsTest < Test::Unit::TestCase
     assert_equal :integer, Mapper.configuration[:solr_fields][:_id][:type]
   end
   
-  should "recognize the type of a MongoMapper key" do
-    assert_equal :string, Mapper.configuration[:solr_fields][:value1][:type]
+  should "recognize the type String of a MongoMapper key as text" do
+    assert_equal :text, Mapper.configuration[:solr_fields][:value1][:type]
   end
 
   context "when getting field values" do

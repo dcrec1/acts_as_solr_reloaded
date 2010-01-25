@@ -361,18 +361,24 @@ module ActsAsSolr #:nodoc:
       if configuration[:facets] && configuration[:facets].include?(field)
         :facet
       elsif column = columns_hash[field.to_s]
-        if column.type.class.eql? Symbol
-          case column.type
+        column_type = format_column_type(column.type)
+        
+        case column_type
           when :string then :text
           when :datetime then :date
           when :time then :date
-          else column.type
-          end
-        else
-          column.type.to_s.eql?("ObjectId") ? :integer : column.type.to_s.downcase.to_sym
+          else column_type
         end
       else
         :text
+      end
+    end
+    
+    def format_column_type(type)
+      if type.class.eql? Symbol
+        type
+      else
+        type.to_s.eql?("ObjectId") ? :integer : type.to_s.downcase.to_sym
       end
     end
   end
