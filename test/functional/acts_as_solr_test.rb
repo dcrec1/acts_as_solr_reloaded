@@ -4,6 +4,8 @@ require "#{File.dirname(File.expand_path(__FILE__))}/../test_helper"
 class ActsAsSolrTest < Test::Unit::TestCase
 
   fixtures :books, :movies, :electronics, :postings, :authors, :advertises
+  
+  Document.delete_all
 
   DynamicAttribute.delete_all
   Advertise.first.dynamic_attributes.create! :name => 'Description', :value => 'A very cool bike'
@@ -118,7 +120,7 @@ class ActsAsSolrTest < Test::Unit::TestCase
       'author:peter AND ruby'].each do |term|
       records = Book.find_id_by_solr term
       assert_equal 1, records.docs.size
-      assert_equal [2], records.docs
+      assert_equal ['2'], records.docs
     end
   end
 
@@ -130,7 +132,7 @@ class ActsAsSolrTest < Test::Unit::TestCase
       'author:clancy AND splinter'].each do |term|
       records = Book.find_id_by_solr term
       assert_equal 1, records.docs.size
-      assert_equal [1], records.docs
+      assert_equal ['1'], records.docs
     end
   end
 
@@ -142,7 +144,7 @@ class ActsAsSolrTest < Test::Unit::TestCase
       'dummy OR cell'].each do |term|
       records = Book.find_id_by_solr term
       assert_equal 2, records.docs.size
-      assert_equal [1,2], records.docs
+      assert_equal ['1','2'], records.docs
     end
   end
 

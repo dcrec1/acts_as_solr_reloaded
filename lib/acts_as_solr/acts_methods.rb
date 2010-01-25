@@ -279,7 +279,7 @@ module ActsAsSolr #:nodoc:
       }
       self.solr_configuration = {
         :type_field => "type_s",
-        :primary_key_field => "pk_i",
+        :primary_key_field => "pk_s",
         :default_boost => 1.0
       }
 

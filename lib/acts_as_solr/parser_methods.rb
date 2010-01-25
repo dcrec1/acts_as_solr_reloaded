@@ -148,12 +148,11 @@ module ActsAsSolr #:nodoc:
       result = if configuration[:lazy] && configuration[:format] != :ids
         ids.collect {|id| ActsAsSolr::LazyDocument.new(id, self)}
       elsif configuration[:format] == :objects
-        conditions = [ "#{self.table_name}.#{primary_key} in (?)", ids ]
-        find_options = {:conditions => conditions}
+        find_options = {}
         find_options[:include] = options[:include] if options[:include]
         find_options[:select] = options[:select] if options[:select]
         find_options[:joins] = options[:joins] if options[:joins]
-        result = reorder(self.find(:all, find_options), ids)
+        result = reorder(self.find(ids, find_options), ids)
       else
         ids
       end
@@ -166,7 +165,7 @@ module ActsAsSolr #:nodoc:
       ordered_things = Array.new(things.size)
       raise "Out of sync! Found #{ids.size} items in index, but only #{things.size} were found in database!" unless things.size == ids.size
       things.each do |thing|
-        position = ids.index(thing.id)
+        position = ids.index(thing.id.to_s)
         ordered_things[position] = thing
       end
       ordered_things
