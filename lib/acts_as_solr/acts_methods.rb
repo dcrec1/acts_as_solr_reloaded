@@ -197,6 +197,10 @@ module ActsAsSolr #:nodoc:
       @@configuration = nil unless defined?(@@configuration)
       @@solr_configuration = nil unless defined?(@@solr_configuration)
       @@deferred_solr_configuration = nil unless defined?(@@deferred_solr_configuration)
+      
+      def self.primary_key
+        super rescue 'id'
+      end
 
       def self.configuration
         return @@configuration if @@configuration
@@ -363,7 +367,7 @@ module ActsAsSolr #:nodoc:
         :text
       end
     end
-    
+
     def columns_hash
       super rescue keys
     end

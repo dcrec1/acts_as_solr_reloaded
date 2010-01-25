@@ -5,6 +5,8 @@ class CommonMethodsTest < Test::Unit::TestCase
   
   class Mongo
     include MongoMapper::Document
+    extend ActsAsSolr::ActsMethods
+    acts_as_solr
     
     def id
       15
