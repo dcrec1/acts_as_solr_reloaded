@@ -9,7 +9,7 @@ class CommonMethodsTest < Test::Unit::TestCase
     acts_as_solr
     
     def id
-      15
+      '4b5e0119f3a4b02902000001'
     end
   end
   
@@ -121,7 +121,7 @@ class CommonMethodsTest < Test::Unit::TestCase
     end
     context "on MongoMapper" do
       should "return the id value" do
-        assert_equal 15, record_id(Mongo.new)
+        assert_equal '4b5e0119f3a4b02902000001', record_id(Mongo.new)
       end
     end
   end

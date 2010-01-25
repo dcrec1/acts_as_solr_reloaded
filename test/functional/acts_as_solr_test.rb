@@ -460,4 +460,8 @@ class ActsAsSolrTest < Test::Unit::TestCase
     assert_equal expected, records.highlights.values.first
   end
 
+  def test_mongo_mappers_documents_are_found
+    Document.new(:name => "mapper").save
+    assert_equal "mapper", Document.search("mapper").first.name
+  end
 end

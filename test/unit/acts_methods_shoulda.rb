@@ -63,8 +63,8 @@ class ActsMethodsTest < Test::Unit::TestCase
     assert !NotTaggable.taggable?
   end
   
-  should "define the type of a MongoMapper document id as integer" do
-    assert_equal :integer, Mapper.configuration[:solr_fields][:_id][:type]
+  should "define the type of a MongoMapper document id as text" do
+    assert_equal :text, Mapper.configuration[:solr_fields][:_id][:type]
   end
   
   should "recognize the type String of a MongoMapper key as text" do

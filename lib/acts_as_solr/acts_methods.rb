@@ -378,7 +378,7 @@ module ActsAsSolr #:nodoc:
       if type.class.eql? Symbol
         type
       else
-        type.to_s.eql?("ObjectId") ? :integer : type.to_s.downcase.to_sym
+        type.to_s.eql?("ObjectId") ? :string : type.to_s.downcase.to_sym
       end
     end
   end

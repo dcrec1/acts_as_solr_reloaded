@@ -10,6 +10,10 @@ begin
 rescue
 end
 
+require 'mongo_mapper'
+
+MongoMapper.database = "acts_as_solr_reloaded-test"
+
 RAILS_ROOT = File.dirname(__FILE__) unless defined? RAILS_ROOT
 RAILS_ENV  = 'test' unless defined? RAILS_ENV
 ENV["RAILS_ENV"] = "test"
