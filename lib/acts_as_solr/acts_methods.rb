@@ -167,6 +167,10 @@ module ActsAsSolr #:nodoc:
 
       unless superclass.to_s.eql?('ActiveRecord::Base')
         self.class_eval do
+          def self.columns_hash
+            keys
+          end
+          
           def self.primary_key
             'id'
           end
@@ -357,23 +361,19 @@ module ActsAsSolr #:nodoc:
       if configuration[:facets] && configuration[:facets].include?(field)
         :facet
       elsif column = columns_hash[field.to_s]
-        if column.type.class.eql? Class
-          :integer
-        else
+        if column.type.class.eql? Symbol
           case column.type
           when :string then :text
           when :datetime then :date
           when :time then :date
           else column.type
           end
+        else
+          column.type.to_s.eql?("ObjectId") ? :integer : column.type.to_s.downcase.to_sym
         end
       else
         :text
       end
-    end
-
-    def columns_hash
-      super rescue keys
     end
   end
 end

@@ -50,6 +50,7 @@ class ActsMethodsTest < Test::Unit::TestCase
   
   class Mapper
     include MongoMapper::Document
+    key :value1, String
     extend ActsAsSolr::ActsMethods
     acts_as_solr
   end
@@ -64,6 +65,10 @@ class ActsMethodsTest < Test::Unit::TestCase
   
   should "define the type of a MongoMapper document id as integer" do
     assert_equal :integer, Mapper.configuration[:solr_fields][:_id][:type]
+  end
+  
+  should "recognize the type of a MongoMapper key" do
+    assert_equal :string, Mapper.configuration[:solr_fields][:value1][:type]
   end
 
   context "when getting field values" do
