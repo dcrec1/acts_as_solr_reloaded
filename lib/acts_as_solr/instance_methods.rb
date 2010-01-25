@@ -14,7 +14,7 @@ module ActsAsSolr #:nodoc:
     def solr_save
       return true if indexing_disabled?
       if evaluate_condition(:if, self) 
-        logger.debug "solr_save: #{self.class.name} : #{record_id(self)}"
+        debug "solr_save: #{self.class.name} : #{record_id(self)}"
         solr_add to_solr_doc
         solr_commit if configuration[:auto_commit]
         true
@@ -30,7 +30,7 @@ module ActsAsSolr #:nodoc:
     # remove from index
     def solr_destroy
       return true if indexing_disabled?
-      logger.debug "solr_destroy: #{self.class.name} : #{record_id(self)}"
+      debug "solr_destroy: #{self.class.name} : #{record_id(self)}"
       solr_delete solr_id
       solr_commit if configuration[:auto_commit]
       true
@@ -38,7 +38,7 @@ module ActsAsSolr #:nodoc:
 
     # convert instance to Solr document
     def to_solr_doc
-      logger.debug "to_solr_doc: creating doc for class: #{self.class.name}, id: #{record_id(self)}"
+      debug "to_solr_doc: creating doc for class: #{self.class.name}, id: #{record_id(self)}"
       doc = Solr::Document.new
       doc.boost = validate_boost(configuration[:boost]) if configuration[:boost]
       
@@ -81,11 +81,16 @@ module ActsAsSolr #:nodoc:
       add_tags(doc)
       add_space(doc)
       
-      logger.debug doc.to_xml
+      debug doc.to_xml
       doc
     end
     
     private
+    
+    def debug(text)
+      logger.debug text rescue nil
+    end
+    
     def add_space(doc)
       if configuration[:spatial] and local
         doc << Solr::Field.new("lat" => local.latitude)

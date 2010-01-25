@@ -162,7 +162,7 @@ class ParserMethodsTest < Test::Unit::TestCase
       end
 
       should "set the relevancy of the specified fields and non-filtered terms" do
-        expected = "(aeroplane brasil continent_t:south OR tag_t:(aeroplane brasil)^5 OR description_t:(aeroplane brasil)^3)"
+        expected = "(aeroplane brasil continent_t:south OR description_t:(aeroplane brasil)^3 OR tag_t:(aeroplane brasil)^5)"
         ActsAsSolr::Post.expects(:execute).with {|request, core|
           request.to_hash[:q].starts_with? expected
         }
@@ -178,7 +178,7 @@ class ParserMethodsTest < Test::Unit::TestCase
       end
 
       should "set the relevance with simple queries" do
-        expected = "(car OR tag_t:(car)^5 OR description_t:(car)^3)"
+        expected = "(car OR description_t:(car)^3 OR tag_t:(car)^5)"
         ActsAsSolr::Post.expects(:execute).with {|request, core|
           request.to_hash[:q].starts_with? expected
         }

@@ -15,10 +15,6 @@ class SolrInstance
     "id"
   end
   
-  def logger
-    @logger ||= Logger.new(StringIO.new)
-  end
-  
   def record_id(obj)
     10
   end

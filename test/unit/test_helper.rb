@@ -23,3 +23,9 @@ end
 require 'mocha'
 gem 'thoughtbot-shoulda'
 require 'shoulda'
+
+class Rails
+  def self.logger
+    Logger.new(StringIO.new)
+  end
+end
