@@ -5,7 +5,7 @@ class ActsAsSolrTest < Test::Unit::TestCase
 
   fixtures :books, :movies, :electronics, :postings, :authors, :advertises
   
-  Document.delete_all
+  Document.destroy_all
 
   DynamicAttribute.delete_all
   Advertise.first.dynamic_attributes.create! :name => 'Description', :value => 'A very cool bike'
