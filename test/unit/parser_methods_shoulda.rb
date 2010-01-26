@@ -39,7 +39,7 @@ class ParserMethodsTest < Test::Unit::TestCase
         end
 
         should "query with the record ids" do
-          @parser.expects(:find).with(:all, :conditions => ["documents.id in (?)", [1, 2]]).returns [1, 2]
+          @parser.expects(:find).with([1, 2], {}).returns [1, 2]
           @parser.parse_results(@results)
         end
 
@@ -49,7 +49,7 @@ class ParserMethodsTest < Test::Unit::TestCase
         end
 
         should "add :include if :include was specified" do
-          @parser.expects(:find).with(:all, :conditions => ["documents.id in (?)", [1, 2]], :include => [:author]).returns [1, 2]
+          @parser.expects(:find).with([1, 2], :include => [:author]).returns [1, 2]
           @parser.parse_results(@results, :include => [:author])
         end
       end
@@ -140,7 +140,7 @@ class ParserMethodsTest < Test::Unit::TestCase
         thing3 = stub(:things3)
         thing3.stubs(:id).returns 3
         things = [thing1, thing2, thing3]
-        reordered = @parser.reorder(things, [1, 3, 5])
+        reordered = @parser.reorder(things, ['1', '3', '5'])
         assert_equal [1, 3, 5], reordered.collect{|thing| thing.id}
       end
     end
