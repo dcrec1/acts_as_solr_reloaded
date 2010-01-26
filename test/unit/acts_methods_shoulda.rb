@@ -50,8 +50,8 @@ class ActsMethodsTest < Test::Unit::TestCase
   
   class Mapper
     include MongoMapper::Document
+    include ActsAsSolr::MongoMapper
     key :value1, String
-    extend ActsAsSolr::ActsMethods
     acts_as_solr
   end
 

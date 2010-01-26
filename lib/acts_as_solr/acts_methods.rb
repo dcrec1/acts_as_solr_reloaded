@@ -165,27 +165,6 @@ module ActsAsSolr #:nodoc:
     # spatial: Default false. When true, indexes model.local.latitude and model.local.longitude as coordinates.
     def acts_as_solr(options={}, solr_options={}, &deferred_solr_configuration)
 
-      unless superclass.to_s.eql?('ActiveRecord::Base')
-        self.class_eval do
-          def self.columns_hash
-            keys
-          end
-          
-          def self.primary_key
-            'id'
-          end
-          
-          def self.find(*args)
-            if args.first.instance_of? Array
-              ids = args.first.map { |id| Mongo::ObjectID.from_string(id) }
-              super :all, :conditions => {primary_key => ids}
-            else
-              super *args
-            end
-          end
-        end
-      end
-
       extend ClassMethods
       include InstanceMethods
       include CommonMethods
