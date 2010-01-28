@@ -5,6 +5,8 @@
 
 development:
   url: http://127.0.0.1:8982/solr
+  username: tomcat
+  password: tomcat
   
 test:
   url: http://127.0.0.1:8981/solr
