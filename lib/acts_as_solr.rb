@@ -53,7 +53,9 @@ module ActsAsSolr
           url = 'http://localhost:8982/solr'
         end
         url += "/" + core if !core.nil?
-        connection = Solr::Connection.new(url)
+        connection = Solr::Connection.new(url,
+            :username=>config[ENV['RAILS_ENV']]['username'],
+            :password=>config[ENV['RAILS_ENV']]['password'])
         return connection.send(request)
       rescue 
         raise "Couldn't connect to the Solr server at #{url}. #{$!}"
