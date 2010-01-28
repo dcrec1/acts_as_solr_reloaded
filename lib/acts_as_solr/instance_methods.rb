@@ -9,11 +9,7 @@ module ActsAsSolr #:nodoc:
 
     # saves to the Solr index
     def solr_save
-      return true if indexing_disabled? or not changed?
-
-      changed_fields = changes.map { |k,v| k }
-      tracked_fields = configuration[:solr_fields].map { |k,v| k.to_s }
-      return true if changed_fields == changed_fields - tracked_fields
+      return true unless need_to_update_solr?
 
       if evaluate_condition(:if, self) 
         debug "solr_save: #{self.class.name} : #{record_id(self)}"
@@ -27,6 +23,18 @@ module ActsAsSolr #:nodoc:
 
     def indexing_disabled?
       evaluate_condition(:offline, self) || !configuration[:if]
+    end
+
+    def need_to_update_solr?
+      return false if indexing_disabled? or not changed?
+
+      spatial = configuration[:spatial]
+      spatial_field = spatial ? ([Symbol, String].include?(spatial.class) ? spatial.to_s : []) : spatial.first[0]
+      changed_fields = changes.map { |k,v| k }
+      tracked_fields = [configuration[:solr_fields].map { |k,v| k.to_s }, spatial_field].compact.flatten
+      return false if changed_fields == changed_fields - tracked_fields
+
+      return true
     end
 
     # remove from index
@@ -92,14 +100,27 @@ module ActsAsSolr #:nodoc:
     def debug(text)
       logger.debug text rescue nil
     end
-    
+
     def add_space(doc)
-      if configuration[:spatial] and local
+      if configuration[:spatial] == true and local
         doc << Solr::Field.new("lat" => local.latitude)
         doc << Solr::Field.new("lng" => local.longitude)
+      else
+        if configuration[:spatial].is_a?(Symbol) and respond_to?(configuration[:spatial])
+          geom = self.send(configuration[:spatial])
+          doc << Solr::Field.new('lat' => geom.y)
+          doc << Solr::Field.new('lng' => geom.x)
+        elsif configuration.is_a?(Hash) and respond_to?(configuration[:spatial].first[0])
+          field, geom_methods = configuration[:spatial].first
+          geom = self.send(field)
+          lat = (geom_methods[:lat] and geom.respond_to?(geom_methods[:lat])) ? geom_methods[:lat] : :y
+          lng = (geom_methods[:lat] and geom.respond_to?(geom_methods[:lng])) ? geom_methods[:lng] : :x
+          doc << Solr::Field.new('lat' => geom.send(lat))
+          doc << Solr::Field.new('lng' => geom.send(lng))
+        end
       end
     end
-    
+
     def add_tags(doc)
       taggings.each do |tagging|
         doc << Solr::Field.new("tag_facet" => tagging.tag.name)
