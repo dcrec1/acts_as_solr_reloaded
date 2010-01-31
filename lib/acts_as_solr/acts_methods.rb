@@ -162,25 +162,7 @@ module ActsAsSolr #:nodoc:
     #                     (:name, :value) model. Then, all dynamic attributes will be mapped as normal attributes
     #                    in Solr, so you can filter like this: Model.find_by_solr "#{dynamic_attribute.name}:Lorem"
     # taggable: Default false. When true, indexes tags with field name tag. Tags are taken from taggings.tag
-    # spatial:: Default false. When true, indexes model.local.latitude and model.local.longitude as coordinates.
-    #           When Symbol/String will use the value as a method to call latitude and longitude.
-    #           When Hash the key will be the main method, the value of Hash should be other hash with
-    #           :latitude(default :y) and :longitude(default :x) that will be called on key.
-    #
-    #             class Author < ActiveRecord::Base
-    #               acts_as_solr :spatial => true # will use local association
-    #             end
-    #
-    #             class Author < ActiveRecord::Base
-    #               acts_as_solr :spatial => :geom # will use geom.y and geom.x
-    #             end
-    #
-    #             class Author < ActiveRecord::Base
-    #               acts_as_solr :spatial => { :geom => { :latitude => :lat, :longitude => :lng } }
-    #             end
-    #
-    #
-    #
+    # spatial: Default false. When true, indexes model.local.latitude and model.local.longitude as coordinates.
     def acts_as_solr(options={}, solr_options={}, &deferred_solr_configuration)
 
       extend ClassMethods
@@ -192,7 +174,7 @@ module ActsAsSolr #:nodoc:
 
       acts_as_taggable_on :tags if options[:taggable]
       has_many :dynamic_attributes, :as => "dynamicable" if options[:dynamic_attributes]
-      has_one :local, :as => "localizable" if options[:spatial] == true
+      has_one :local, :as => "localizable" if options[:spatial]
 
       after_save    :solr_save
       after_destroy :solr_destroy
