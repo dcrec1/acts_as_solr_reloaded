@@ -10,7 +10,7 @@ Installation
 
 Requirements
 ------
-* Java Runtime Environment(JRE) 1.5 aka 5.0 or newer [http://www.java.com/en/download/index.jsp](http://www.java.com/en/download/index.jsp)
+* Java Runtime Environment(JRE) 1.6 aka 6.0 or newer [http://www.java.com/en/download/index.jsp](http://www.java.com/en/download/index.jsp)
 * If you have libxml-ruby installed, make sure it's at least version 0.7
 
 Configuration
