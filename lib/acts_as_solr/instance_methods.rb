@@ -9,12 +9,7 @@ module ActsAsSolr #:nodoc:
 
     # saves to the Solr index
     def solr_save
-      return true if indexing_disabled? or not changed?
-
-      changed_fields = changes.map { |k,v| k }
-      tracked_fields = configuration[:solr_fields].map { |k,v| k.to_s }
-      return true if changed_fields == changed_fields - tracked_fields
-
+      return true if indexing_disabled?
       if evaluate_condition(:if, self) 
         debug "solr_save: #{self.class.name} : #{record_id(self)}"
         solr_add to_solr_doc
