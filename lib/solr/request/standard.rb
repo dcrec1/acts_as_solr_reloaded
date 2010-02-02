@@ -14,7 +14,7 @@ class Solr::Request::Standard < Solr::Request::Select
 
   VALID_PARAMS = [:query, :sort, :default_field, :operator, :start, :rows, :shards, :date_facets,
     :filter_queries, :field_list, :debug_query, :explain_other, :facets, :highlighting, :mlt, :radius, 
-    :latitude, :longitude]
+    :latitude, :longitude, :spellcheck]
   
   def initialize(params)
     super(params[:radius].nil? ? 'standard' : 'geo')
@@ -399,6 +399,8 @@ class Solr::Request::Standard < Solr::Request::Select
       hash["mlt.maxntp"] = @params[:mlt][:max_tokens_parsed]
       hash["mlt.boost"] = @params[:mlt][:boost]
     end
+    
+    hash[:spellcheck] = true
     
     hash.merge(super.to_hash)
   end
