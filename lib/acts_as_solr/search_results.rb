@@ -62,6 +62,10 @@ module ActsAsSolr #:nodoc:
     def highlights
         @solr_data[:highlights]
     end
+    
+    def suggest
+      @solr_data[:spellcheck]['suggestions']['collation'].match(/\((.+)\) /)[1]
+    end
 
     alias docs results
     alias records results

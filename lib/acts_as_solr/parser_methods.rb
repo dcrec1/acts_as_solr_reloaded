@@ -119,6 +119,7 @@ module ActsAsSolr #:nodoc:
       configuration = {
         :format => :objects
       }
+      results.update(:spellcheck => solr_data.data['spellcheck']) unless solr_data.nil?
       results.update(:facets => {'facet_fields' => []}) if options[:facets]
       return SearchResults.new(results) if (solr_data.nil? || solr_data.total_hits == 0)
 

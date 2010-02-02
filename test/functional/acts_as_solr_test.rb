@@ -461,6 +461,10 @@ class ActsAsSolrTest < Test::Unit::TestCase
     expected = {"name"=>["<em>Ruby</em> for Dummies"]}
     assert_equal expected, records.highlights.values.first
   end
+  
+  def test_spellcheck
+    assert_equal "ruby for dummies", Book.search("rubi for dumies").suggest
+  end
 
   def test_mongo_mappers_documents_are_found
     Document.new(:name => "mapper").save
