@@ -401,6 +401,7 @@ class Solr::Request::Standard < Solr::Request::Select
     end
     
     hash[:spellcheck] = true
+    hash['spellcheck.collate'] = true
     
     hash.merge(super.to_hash)
   end

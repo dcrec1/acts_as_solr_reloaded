@@ -249,6 +249,13 @@ class ParserMethodsTest < Test::Unit::TestCase
         }
         @parser.parse_query "foo"
       end
+      
+      should "activate spellcheck collation" do
+        ActsAsSolr::Post.expects(:execute).with {|request, core|
+          request.to_hash['spellcheck.collate'] == true
+        }
+        @parser.parse_query "foo"
+      end
 
       context "with the around option" do
         should "set the qt as geo" do
