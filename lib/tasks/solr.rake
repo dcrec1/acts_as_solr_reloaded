@@ -13,7 +13,9 @@ namespace :solr do
     rescue Net::HTTPServerException #responding
       puts "Port #{SOLR_PORT} in use" and return
 
-    rescue Errno::ECONNREFUSED, Errno::EBADF #not responding
+    rescue Errno::ECONNREFUSED, Errno::EBADF, NoMethodError #not responding
+      # there's an issue with Net::HTTP.request where @socket is nil and raises a NoMethodError
+      # http://redmine.ruby-lang.org/issues/show/2708
       Dir.chdir(SOLR_PATH) do
         cmd = "java #{SOLR_JVM_OPTIONS} -Djetty.logs=\"#{SOLR_LOGS_PATH}\" -Dsolr.solr.home=\"#{SOLR_CONFIG_PATH}\" -Dsolr.data.dir=\"#{SOLR_DATA_PATH}\" -Djetty.port=#{SOLR_PORT} -jar start.jar"
         puts "Executing: " + cmd
