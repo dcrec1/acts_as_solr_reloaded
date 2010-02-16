@@ -3,7 +3,7 @@ require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 
-Dir["#{File.dirname(__FILE__)}/lib/acts_as_solr/tasks/**/*.rake"].sort.each { |ext| load ext }
+Dir["#{File.dirname(__FILE__)}/lib/tasks/*.rake"].sort.each { |ext| load ext }
 
 desc "Default Task"
 task :default => [:test]

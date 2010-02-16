@@ -2,7 +2,7 @@ namespace :solr do
 
   desc 'Starts Solr. Options accepted: RAILS_ENV=your_env, PORT=XX. Defaults to development if none.'
   task :start => :environment do
-    require File.expand_path("#{File.dirname(__FILE__)}/../../../config/solr_environment")
+    require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
     FileUtils.mkdir_p(SOLR_LOGS_PATH)
     FileUtils.mkdir_p(SOLR_DATA_PATH)
     FileUtils.mkdir_p(SOLR_PIDS_PATH)
@@ -35,7 +35,7 @@ namespace :solr do
   
   desc 'Stops Solr. Specify the environment by using: RAILS_ENV=your_env. Defaults to development if none.'
   task :stop=> :environment do
-    require File.expand_path("#{File.dirname(__FILE__)}/../../../config/solr_environment")
+    require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
     fork do
       file_path = "#{SOLR_PIDS_PATH}/#{ENV['RAILS_ENV']}_pid"
       if File.exists?(file_path)
@@ -54,7 +54,7 @@ namespace :solr do
   
   desc 'Remove Solr index'
   task :destroy_index => :environment do
-    require File.expand_path("#{File.dirname(__FILE__)}/../../../config/solr_environment")
+    require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
     raise "In production mode.  I'm not going to delete the index, sorry." if ENV['RAILS_ENV'] == "production"
     if File.exists?("#{SOLR_DATA_PATH}")
       Dir["#{SOLR_DATA_PATH}/index/*"].each{|f| File.unlink(f) if File.exists?(f)}
@@ -67,7 +67,7 @@ namespace :solr do
   # http://henrik.nyh.se/2007/06/rake-task-to-reindex-models-for-acts_as_solr
   desc %{Reindexes data for all acts_as_solr models. Clears index first to get rid of orphaned records and optimizes index afterwards. RAILS_ENV=your_env to set environment. ONLY=book,person,magazine to only reindex those models; EXCEPT=book,magazine to exclude those models. START_SERVER=true to solr:start before and solr:stop after. BATCH=123 to post/commit in batches of that size: default is 300. CLEAR=false to not clear the index first; OPTIMIZE=false to not optimize the index afterwards.}
   task :reindex => :environment do
-    require File.expand_path("#{File.dirname(__FILE__)}/../../../config/solr_environment")
+    require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
 
     includes = env_array_to_constants('ONLY')
     if includes.empty?
