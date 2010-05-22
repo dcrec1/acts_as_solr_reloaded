@@ -63,8 +63,19 @@ module ActsAsSolr #:nodoc:
         @solr_data[:highlights]
     end
     
+    # Returns a suggested query
     def suggest
       @solr_data[:spellcheck]['suggestions']['collation'].match(/\((.+)\) /)[1]
+    end
+
+    # Returns the number of documents per page
+    def per_page
+      @solr_data[:rows]
+    end
+
+    # Returns the number of pages found
+    def total_pages
+      (total / per_page.to_f).ceil
     end
 
     alias docs results

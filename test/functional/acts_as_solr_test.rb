@@ -470,4 +470,12 @@ class ActsAsSolrTest < Test::Unit::TestCase
     Document.new(:name => "mapper").save
     assert_equal "mapper", Document.search("mapper").docs.first.name
   end
+
+  def test_total_pages_is_returned_when_limit_specified
+    assert_equal 2, Posting.search("test", :limit => 1).total_pages
+  end
+
+  def test_total_pages_is_returned_when_limit_not_specified
+    assert_equal 1, Posting.search("test").total_pages
+  end
 end

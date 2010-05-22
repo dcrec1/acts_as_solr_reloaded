@@ -15,7 +15,7 @@ module ActsAsSolr #:nodoc:
       begin
         Deprecation.validate_query(options)
         query_options[:start] = options[:offset]
-        query_options[:rows] = options[:limit]
+        query_options[:rows] = options[:limit] || 30
         query_options[:operator] = options[:operator]
 
         query = add_relevance query, options[:relevance]
@@ -141,6 +141,7 @@ module ActsAsSolr #:nodoc:
       results.update(:facets => solr_data.data['facet_counts']) if options[:facets]
       results.update({:docs => result, :total => solr_data.total_hits, :max_score => solr_data.max_score, :query_time => solr_data.data['responseHeader']['QTime']})
       results.update({:highlights=>highlighted})
+      results.update :rows => solr_data.header['params']['rows'].to_i unless solr_data.header['params'].nil?
       SearchResults.new(results)
     end
 
