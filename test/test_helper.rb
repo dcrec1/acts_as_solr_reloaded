@@ -58,3 +58,13 @@ class Test::Unit::TestCase
     ActsAsSolr::Post.execute(Solr::Request::Delete.new(:query => "type_s:#{table_name.to_s.capitalize.singularize}"))
   end
 end
+
+class Rails
+  def self.root
+    RAILS_ROOT
+  end
+
+  def self.env
+    RAILS_ENV
+  end
+end

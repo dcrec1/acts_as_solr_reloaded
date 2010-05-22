@@ -2,6 +2,7 @@ ENV['RAILS_ENV']  = (ENV['RAILS_ENV'] || 'development').dup
 # RAILS_ROOT isn't defined yet, so figure it out.
 require "uri"
 require "fileutils"
+require "yaml"
 dir = File.dirname(__FILE__)
 SOLR_PATH = File.expand_path("#{dir}/../solr") unless defined? SOLR_PATH
 
