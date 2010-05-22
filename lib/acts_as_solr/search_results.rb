@@ -78,6 +78,11 @@ module ActsAsSolr #:nodoc:
       (total / per_page.to_f).ceil
     end
 
+    # Returns the current page
+    def current_page
+      (@solr_data[:start].to_i / per_page.to_i) + 1
+    end
+
     alias docs results
     alias records results
     alias num_found total

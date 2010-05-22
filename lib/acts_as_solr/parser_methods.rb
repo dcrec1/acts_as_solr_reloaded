@@ -141,7 +141,11 @@ module ActsAsSolr #:nodoc:
       results.update(:facets => solr_data.data['facet_counts']) if options[:facets]
       results.update({:docs => result, :total => solr_data.total_hits, :max_score => solr_data.max_score, :query_time => solr_data.data['responseHeader']['QTime']})
       results.update({:highlights=>highlighted})
-      results.update :rows => solr_data.header['params']['rows'].to_i unless solr_data.header['params'].nil?
+      unless solr_data.header['params'].nil?
+        header = solr_data.header
+        results.update :rows => header['params']['rows']
+        results.update :start => header['params']['start']
+      end
       SearchResults.new(results)
     end
 

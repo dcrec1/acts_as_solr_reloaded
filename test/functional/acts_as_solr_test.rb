@@ -478,4 +478,12 @@ class ActsAsSolrTest < Test::Unit::TestCase
   def test_total_pages_is_returned_when_limit_not_specified
     assert_equal 1, Posting.search("test").total_pages
   end
+
+  def test_current_page_is_returned
+    assert_equal 2, Posting.search("test", :limit => 1, :offset => 1).current_page
+  end
+
+  def test_current_page_1_is_returned
+    assert_equal 1, Posting.search("test").current_page
+  end
 end
