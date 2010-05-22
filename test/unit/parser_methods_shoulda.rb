@@ -15,6 +15,7 @@ class ParserMethodsTest < Test::Unit::TestCase
         @results.stubs(:max_score).returns 2.1
         @results.stubs(:highlighting).returns []
         @results.stubs(:data).returns({"responseHeader" => {"QTime" => "10.2"}})
+        @results.stubs(:header).returns({})
       end
 
       should "return a SearchResults object" do
