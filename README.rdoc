@@ -5,9 +5,11 @@ This plugin adds full text search capabilities and many other nifty features fro
 * faceting
 * dynamic attributes
 * integration with acts_as_taggable_on
+* integration with will_paginate
 * highlighting
 * geolocation
 * relevance
+* suggest
 
 Watch this screencast for a short demo of the latests features:
 
@@ -54,6 +56,16 @@ If you want to integrate the model with acts_as_taggable_on, just add the option
   acts_as_solr :taggable => true
 
 Please see ActsAsSolr::ActsMethods for a complete info
+
+== PAGINATION
+
+In your controller:
+
+  @search = Product.search "beer", :page => 2, :per_page => 20
+
+And in your view:
+
+  will_paginate @search
 
 == TESTING
 
