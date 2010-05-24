@@ -486,4 +486,8 @@ class ActsAsSolrTest < Test::Unit::TestCase
   def test_current_page_1_is_returned
     assert_equal 1, Posting.search("test").current_page
   end
+
+  def test_current_page_1_is_returned_when_no_records_found
+    assert_equal 1, Posting.search("nothing").current_page
+  end
 end

@@ -121,6 +121,11 @@ module ActsAsSolr #:nodoc:
       }
       results.update(:spellcheck => solr_data.data['spellcheck']) unless solr_data.nil?
       results.update(:facets => {'facet_fields' => []}) if options[:facets]
+      unless solr_data.header['params'].nil?
+        header = solr_data.header
+        results.update :rows => header['params']['rows']
+        results.update :start => header['params']['start']
+      end
       return SearchResults.new(results) if (solr_data.nil? || solr_data.total_hits == 0)
 
       configuration.update(options) if options.is_a?(Hash)
@@ -141,11 +146,6 @@ module ActsAsSolr #:nodoc:
       results.update(:facets => solr_data.data['facet_counts']) if options[:facets]
       results.update({:docs => result, :total => solr_data.total_hits, :max_score => solr_data.max_score, :query_time => solr_data.data['responseHeader']['QTime']})
       results.update({:highlights=>highlighted})
-      unless solr_data.header['params'].nil?
-        header = solr_data.header
-        results.update :rows => header['params']['rows']
-        results.update :start => header['params']['start']
-      end
       SearchResults.new(results)
     end
 
