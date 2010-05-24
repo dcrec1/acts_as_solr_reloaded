@@ -6,7 +6,7 @@ module ActsAsSolr #:nodoc:
     def parse_query(query=nil, options={}, models=nil)
       valid_options = [ :offset, :limit, :facets, :models, :results_format, :order,
                                           :scores, :operator, :include, :lazy, :joins, :select, :core,
-                                          :around, :relevance, :highlight, :page]
+                                          :around, :relevance, :highlight, :page, :per_page]
       query_options = {}
 
       return nil if (query.nil? || query.strip == '')
@@ -14,7 +14,7 @@ module ActsAsSolr #:nodoc:
       raise "Invalid parameters: #{(options.keys - valid_options).join(',')}" unless (options.keys - valid_options).empty?
       begin
         Deprecation.validate_query(options)
-        per_page = options[:limit] || 30
+        per_page = options[:per_page] || options[:limit] || 30
         offset = options[:offset] || (((options[:page] || 1).to_i - 1) * per_page) 
         query_options[:rows] = per_page
         query_options[:start] = offset

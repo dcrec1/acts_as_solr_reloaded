@@ -70,7 +70,7 @@ module ActsAsSolr #:nodoc:
 
     # Returns the number of documents per page
     def per_page
-      @solr_data[:rows]
+      @solr_data[:rows].to_i
     end
 
     # Returns the number of pages found
@@ -80,7 +80,7 @@ module ActsAsSolr #:nodoc:
 
     # Returns the current page
     def current_page
-      (@solr_data[:start].to_i / per_page.to_i) + 1
+      (@solr_data[:start].to_i / per_page) + 1
     end
 
     alias docs results

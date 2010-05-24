@@ -494,4 +494,8 @@ class ActsAsSolrTest < Test::Unit::TestCase
   def test_page_parameter_is_accepted
     assert_equal 2, Posting.search("test", :limit => 1, :page => 2).current_page
   end
+
+  def test_per_page_parameter_is_accepted
+    assert_equal 1, Posting.search("test", :per_page => 1).per_page
+  end
 end
