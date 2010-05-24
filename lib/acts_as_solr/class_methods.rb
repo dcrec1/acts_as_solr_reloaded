@@ -17,7 +17,9 @@ module ActsAsSolr #:nodoc:
     # 
     # ====options:
     # offset:: - The first document to be retrieved (offset)
+    # page:: - The page to be retrieved
     # limit:: - The number of rows per page
+    # per_page:: - Alias for limit
     # order:: - Orders (sort by) the result set using a given criteria:
     #
     #             Book.find_by_solr 'ruby', :order => 'description asc'
