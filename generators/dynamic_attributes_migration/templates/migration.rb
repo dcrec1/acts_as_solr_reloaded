@@ -7,9 +7,11 @@ class DynamicAttributesMigration < ActiveRecord::Migration
       t.text :value
       t.timestamps
     end
+    add_index :dynamic_attributes, [:dynamicable_id, :dynamicable_type, :name], :unique => true,  :name => 'da_pk'
   end
 
   def self.down
+    remove_index 'da_pk'
     drop_table :dynamic_attributes
   end
 end
