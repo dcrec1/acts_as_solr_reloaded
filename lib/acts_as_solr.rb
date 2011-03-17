@@ -21,16 +21,24 @@ require File.dirname(__FILE__) + '/acts_as_solr/lazy_document'
 require File.dirname(__FILE__) + '/acts_as_solr/mongo_mapper'
 
 module ActsAsSolr
+  class Post
+    class << self
+      def config
+        @config ||= YAML::load_file("#{Rails.root}/config/solr.yml")[Rails.env]
+      end
 
-  class Post    
-    def self.execute(request, core = nil)
-      config_file_path = File.join(Rails.root, '/config/solr.yml')
-      config = YAML::load_file(config_file_path)[Rails.env]
-      url = config['url'] + (core.nil? ? '' : "/#{core}")
-      connection = Solr::Connection.new(url,
-                                        :username => config['username'],
-                                        :password => config['password'])
-      connection.send request
+      def credentials
+        @credentials ||= {:username => config['username'], :password => config['password']}
+      end
+
+      def url(core)
+        core.nil? ? config['url'] : "#{config['url']}/#{core}"
+      end
+    
+      def execute(request, core = nil)
+        connection = Solr::Connection.new(url(core), credentials)
+        connection.send request
+      end
     end
   end
 end
