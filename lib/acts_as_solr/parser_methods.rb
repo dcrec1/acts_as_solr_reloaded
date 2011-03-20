@@ -15,7 +15,7 @@ module ActsAsSolr #:nodoc:
       begin
         Deprecation.validate_query(options)
         per_page = options[:per_page] || options[:limit] || 30
-        offset = options[:offset] || (((options[:page] || 1).to_i - 1) * per_page) 
+        offset = options[:offset] || (((options[:page] || 1).to_i - 1) * per_page)
         query_options[:rows] = per_page
         query_options[:start] = offset
         query_options[:operator] = options[:operator]
@@ -123,7 +123,7 @@ module ActsAsSolr #:nodoc:
       }
       results.update(:spellcheck => solr_data.data['spellcheck']) unless solr_data.nil?
       results.update(:facets => {'facet_fields' => []}) if options[:facets]
-      unless solr_data.header['params'].nil?
+      unless solr_data.nil? or solr_data.header['params'].nil?
         header = solr_data.header
         results.update :rows => header['params']['rows']
         results.update :start => header['params']['start']
