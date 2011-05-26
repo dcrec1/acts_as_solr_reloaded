@@ -6,25 +6,22 @@ It was based on the first draft by Erik Hatcher.
 Installation
 ======
 
-    script/plugin install git://github.com/dcrec1/acts_as_solr_reloaded.git
+Install as a plugin
+
+    script/plugin install git://github.com/brauliobo/acts_as_solr_reloaded.git
+
+Download Solr 3.1
+
+    rake solr:download
 
 Requirements
 ------
-* Java Runtime Environment(JRE) 1.6 aka 6.0 or newer [http://www.java.com/en/download/index.jsp](http://www.java.com/en/download/index.jsp)
-* If you have libxml-ruby installed, make sure it's at least version 0.7
+* Java Runtime Environment(JRE) 1.6 aka 6.0 or newer [http://www.java.com/en/download/index.jsp](http://www.java.com/en/download/index.jsp) (use default-jre for Debian like distribution)
+* (Recommended) If you have libxml-ruby installed, make sure it's at least version 0.7
 
 Configuration
 ======
-If you are using acts_as_solr as a Rails plugin, everything is configured to work out of the box. You can use `rake solr:start` and `rake solr:stop`
-to start and stop the Solr web server (an embedded Jetty). If the default JVM options aren't suitable for
-your environment, you can configure them in solr.yml with the option `jvm_options`. There is a default
-set for the production environment to have some more memory available for the JVM than the defaults, but
-feel free to change them to your liking.
-
-If you are using acts_as_solr as a gem, create a file named lib/tasks/acts_as_solr.rake:
-<pre><code>
-require "acts_as_solr/tasks"
-</code></pre>
+See config/solr.yml file.
 
 Basic Usage
 ======

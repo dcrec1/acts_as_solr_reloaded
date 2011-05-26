@@ -17,18 +17,17 @@ http://www.vimeo.com/8728276
 
 == INSTALLATION
 
-    script/plugin install git://github.com/dcrec1/acts_as_solr_reloaded.git
+    script/plugin install git://github.com/brauliobo/acts_as_solr_reloaded.git
+    rake solr:download
 
 == REQUIREMENTS
 
-* Java Runtime Environment(JRE) 1.5 aka 5.0 [http://www.java.com/en/download/index.jsp](http://www.java.com/en/download/index.jsp)
-* If you have libxml-ruby installed, make sure it's at least version 0.7
+* Java Runtime Environment(JRE) 1.5 aka 5.0 [http://www.java.com/en/download/index.jsp](http://www.java.com/en/download/index.jsp) (use default-jre for Debian like distribution)
+* (Recommended) If you have libxml-ruby installed, make sure it's at least version 0.7
 
 == CONFIGURATION
 
-Configuration is done in the config/solr.yml file. If you need a Solr server, you can clone this jetty-solr project:
-
-http://github.com/dcrec1/jetty-solr
+See config/solr.yml file.
 
 == USAGE
 
