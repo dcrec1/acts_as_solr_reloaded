@@ -73,7 +73,7 @@ class Solr::Request::Standard < Solr::Request::Select
       hash[:facet] = true
       hash["facet.field"] = []
       hash["facet.query"] = @params[:facets][:queries]
-      hash["facet.sort"] = (@params[:facets][:sort] == :count) if @params[:facets][:sort]
+      hash["facet.sort"] = @params[:facets][:sort]
       hash["facet.limit"] = @params[:facets][:limit]
       hash["facet.missing"] = @params[:facets][:missing]
       hash["facet.mincount"] = @params[:facets][:mincount]
@@ -85,7 +85,7 @@ class Solr::Request::Standard < Solr::Request::Select
             key = f.keys[0]
             value = f[key]
             hash["facet.field"] << key
-            hash["f.#{key}.facet.sort"] = (value[:sort] == :count) if value[:sort]
+            hash["f.#{key}.facet.sort"] = value[:sort]
             hash["f.#{key}.facet.limit"] = value[:limit]
             hash["f.#{key}.facet.missing"] = value[:missing]
             hash["f.#{key}.facet.mincount"] = value[:mincount]
