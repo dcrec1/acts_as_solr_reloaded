@@ -1,5 +1,20 @@
 namespace :solr do
 
+  desc 'Download and install Solr+Jetty 3.1.0.'
+  task :download do
+    if (File.exists?(Rails.root + '/vendor/plugins/acts_as_solr/solr/start.jar'))
+      puts 'Solr already downloaded.'
+    else
+      cd '/tmp'
+      sh 'wget -c http://apache.mirrors.hoobly.com/lucene/solr/3.1.0/apache-solr-3.1.0.tgz'
+      sh 'tar xzf apache-solr-3.1.0.tgz'
+      cd 'apache-solr-3.1.0/example'
+      cp_r ['../LICENSE.txt', '../NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'], Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr', :verbose => true
+      cd 'solr'
+      cp_r ['README.txt', 'bin', 'solr.xml'], Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr/solr', :verbose => true
+    end
+  end
+
   desc 'Starts Solr. Options accepted: RAILS_ENV=your_env, PORT=XX. Defaults to development if none.'
   task :start => :environment do
     require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
@@ -17,7 +32,7 @@ namespace :solr do
       # there's an issue with Net::HTTP.request where @socket is nil and raises a NoMethodError
       # http://redmine.ruby-lang.org/issues/show/2708
       Dir.chdir(SOLR_PATH) do
-        cmd = "java #{SOLR_JVM_OPTIONS} -Djetty.logs=\"#{SOLR_LOGS_PATH}\" -Dsolr.solr.home=\"#{SOLR_CONFIG_PATH}\" -Dsolr.data.dir=\"#{SOLR_DATA_PATH}\" -Djetty.port=#{SOLR_PORT} -jar start.jar"
+        cmd = "java #{SOLR_JVM_OPTIONS} -Djetty.logs=\"#{SOLR_LOGS_PATH}\" -Dsolr.solr.home=\"#{SOLR_CONFIG_PATH}\" -Dsolr.data.dir=\"#{SOLR_DATA_PATH}\" -Djetty.host=\"#{SOLR_HOST}\" -Djetty.port=#{SOLR_PORT} -jar start.jar"
         puts "Executing: " + cmd
         windows = RUBY_PLATFORM =~ /(win|w)32$/
         if windows
@@ -29,8 +44,8 @@ namespace :solr do
           end
         end
         sleep(5)
-        File.open("#{SOLR_PIDS_PATH}/#{ENV['RAILS_ENV']}_pid", "w"){ |f| f << pid} unless windows
-        puts "#{ENV['RAILS_ENV']} Solr started successfully on #{SOLR_PORT}, pid: #{pid}."
+        File.open(SOLR_PID_FILE, "w"){ |f| f << pid} unless windows
+        puts "#{ENV['RAILS_ENV']} Solr started successfully on #{SOLR_HOST}:#{SOLR_PORT}, pid: #{pid}."
       end
     end
   end
@@ -39,17 +54,16 @@ namespace :solr do
   task :stop=> :environment do
     require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
     fork do
-      file_path = "#{SOLR_PIDS_PATH}/#{ENV['RAILS_ENV']}_pid"
-      if File.exists?(file_path)
-        File.open(file_path, "r") do |f| 
+      if File.exists?(SOLR_PID_FILE)
+        File.open(SOLR_PID_FILE, "r") do |f| 
           pid = f.readline
           Process.kill('TERM', pid.to_i)
         end
-        File.unlink(file_path)
+        File.unlink(SOLR_PID_FILE)
         Rake::Task["solr:destroy_index"].invoke if ENV['RAILS_ENV'] == 'test'
         puts "Solr shutdown successfully."
       else
-        puts "PID file not found at #{file_path}. Either Solr is not running or no PID file was written."
+        puts "PID file not found at #{SOLR_PID_FILE}. Either Solr is not running or no PID file was written."
       end
     end
   end
