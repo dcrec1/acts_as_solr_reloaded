@@ -39,7 +39,7 @@ namespace :solr do
           exec cmd
         else
           pid = fork do
-            #STDERR.close
+            STDERR.close
             exec cmd 
           end
         end
