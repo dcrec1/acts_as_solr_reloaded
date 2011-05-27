@@ -107,8 +107,8 @@ module ActsAsSolr #:nodoc:
     end
 
     def solr_type_condition
-      (subclasses || []).inject("(#{solr_configuration[:type_field]}:#{Solr::Util.query_parser_escape(self.name)}") do |condition, subclass|
-        condition << " OR #{solr_configuration[:type_field]}:#{Solr::Util.query_parser_escape(subclass.name)}"
+      (subclasses || []).inject("(#{solr_configuration[:type_field]}:#{self.name}") do |condition, subclass|
+        condition << (subclass.name.empty? ? "" : " OR #{solr_configuration[:type_field]}:#{subclass.name}")
       end << ')'
     end
 
@@ -171,11 +171,10 @@ module ActsAsSolr #:nodoc:
 
     # Reorders the instances keeping the order returned from Solr
     def reorder(things, ids)
-      ordered_things = Array.new(things.size)
-      raise "Out of sync! Found #{ids.size} items in index, but only #{things.size} were found in database!" unless things.size == ids.size
-      things.each do |thing|
-        position = ids.index(thing.id.to_s)
-        ordered_things[position] = thing
+      ordered_things = []
+      ids.each do |id|
+	      thing = things.find { |t| t.id.to_s == id.to_s }
+	      ordered_things |= [thing] if thing
       end
       ordered_things
     end
