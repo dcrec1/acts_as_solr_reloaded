@@ -3,6 +3,9 @@ Description
 This plugin adds full text search capabilities and many other nifty features from Apache's [Solr](http://lucene.apache.org/solr/) to any Rails model.
 It was based on the first draft by Erik Hatcher.
 
+This plugin is intended for use in old versions of Rails. For newer versions, I strongly advice using Sunspot!
+Nevertheless, this plugin is used for Noosfero project in production. Any problem please open an issue.
+
 Installation
 ======
 
