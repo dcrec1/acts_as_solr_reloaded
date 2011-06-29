@@ -22,7 +22,7 @@ class Solr::Field
     name_key = (params.keys - VALID_PARAMS).first
     @name, @value = name_key.to_s, params[name_key]
     # Convert any Time values into UTC/XML schema format (which Solr requires).
-    @value = @value.respond_to?(:utc) ? @value.utc.xmlschema : @value.to_s
+    @value = @value.respond_to?(:utc) ? @value.utc.xmlschema : @value.to_str
   end
 
   def to_xml
