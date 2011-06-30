@@ -8,8 +8,9 @@ module ActsAsSolr #:nodoc:
                                           :scores, :operator, :include, :lazy, :joins, :select, :core,
                                           :around, :relevance, :highlight, :page, :per_page]
       query_options = {}
-
+      query = sanitize_query(query) if query
       return nil if (query.nil? || query.strip == '')
+      
 
       raise "Invalid parameters: #{(options.keys - valid_options).join(',')}" unless (options.keys - valid_options).empty?
       begin
@@ -230,6 +231,11 @@ module ActsAsSolr #:nodoc:
       options = [options] unless options.kind_of? Array
       bad_options = options.map {|x| x.to_sym} - valid_other_options
       raise "Invalid option#{'s' if bad_options.size > 1} for faceted date's other param: #{bad_options.join(', ')}. May only be one of :after, :all, :before, :between, :none" if bad_options.size > 0
+    end
+    
+    # Remove all leading ?'s and *'s from query
+    def sanitize_query(query)
+      query.gsub(/\A([\?|\*| ]+)/, '')
     end
 
     private
