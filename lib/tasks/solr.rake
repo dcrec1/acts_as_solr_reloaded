@@ -1,18 +1,29 @@
 namespace :solr do
 
-  desc 'Download and install Solr+Jetty 3.1.0.'
+  desc 'Download and install Solr+Jetty 3.3.0.'
   task :download do
     if (File.exists?(Rails.root + '/vendor/plugins/acts_as_solr/solr/start.jar'))
       puts 'Solr already downloaded.'
     else
       cd '/tmp'
-      sh 'wget -c http://apache.mirrors.hoobly.com/lucene/solr/3.1.0/apache-solr-3.1.0.tgz'
-      sh 'tar xzf apache-solr-3.1.0.tgz'
-      cd 'apache-solr-3.1.0/example'
+      sh 'wget -c http://ftp.unicamp.br/pub/apache/lucene/solr/3.3.0/apache-solr-3.3.0.tgz'
+      sh 'tar xzf apache-solr-3.3.0.tgz'
+      cd 'apache-solr-3.3.0/example'
       cp_r ['../LICENSE.txt', '../NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'], Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr', :verbose => true
       cd 'solr'
       cp_r ['README.txt', 'bin', 'solr.xml'], Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr/solr', :verbose => true
     end
+  end
+
+  desc 'Remove Solr instalation from the tree.'
+  task :remove do
+    solr_root = Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr/'
+    rm_r ['README.txt', 'bin', 'solr.xml'].map{ |i| File.join(solr_root, 'solr', i) }, :verbose => true, :force => true
+    rm_r ['LICENSE.txt', 'NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'].map{ |i| File.join(solr_root, i) }, :verbose => true, :force => true
+  end
+
+  desc 'Update to the newest supported version of solr'
+  task :update => [:remove, :download] do
   end
 
   desc 'Starts Solr. Options accepted: RAILS_ENV=your_env, PORT=XX. Defaults to development if none.'
