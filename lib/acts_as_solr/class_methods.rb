@@ -181,8 +181,8 @@ module ActsAsSolr #:nodoc:
     end
     
     def multi_model_suffix(options)
-      models = "AND (#{solr_configuration[:type_field]}:#{Solr::Util.query_parser_escape(self.name)}"
-      models << " OR " + options[:models].collect {|m| "#{solr_configuration[:type_field]}:" + Solr::Util.query_parser_escape(m.to_s)}.join(" OR ") if options[:models].is_a?(Array)
+      models = "AND (#{solr_configuration[:type_field]}:\"#{self.name}\""
+      models << " OR " + options[:models].collect {|m| "#{solr_configuration[:type_field]}:\"" + m.to_s + "\""}.join(" OR ") if options[:models].is_a?(Array)
       models << ")"
     end
     
