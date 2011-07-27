@@ -14,7 +14,7 @@ To run the acts_as_solr's plugin tests run the following steps:
 
 - create a new Rails project, if needed (the plugin can only be tested from within a Rails project); move/checkout acts_as_solr into its vendor/plugins/, as usual
 
-- copy vendor/plugins/acts_as_solr/config/solr.yml to config/ (the Rails config folder)
+- copy vendor/plugins/acts_as_solr_reloaded/config/solr.yml to config/ (the Rails config folder)
 
 - rake solr:start RAILS_ENV=test
 

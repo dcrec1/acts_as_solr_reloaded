@@ -2,7 +2,7 @@ namespace :solr do
 
   desc 'Download and install Solr+Jetty 3.3.0.'
   task :download do
-    if (File.exists?(Rails.root + '/vendor/plugins/acts_as_solr/solr/start.jar'))
+    if (File.exists?(Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr/start.jar'))
       puts 'Solr already downloaded.'
     else
       cd '/tmp'
