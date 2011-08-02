@@ -5,28 +5,21 @@ module ActsAsSolr #:nodoc:
     # Converts field types into Solr types
     def get_solr_field_type(field_type)
       if field_type.is_a?(Symbol)
-        case field_type
-          when :float
-            return "f"
-          when :integer
-            return "i"
-          when :boolean
-            return "b"
-          when :string
-            return "s"
-          when :date
-            return "d"
-          when :range_float
-            return "rf"
-          when :range_integer
-            return "ri"
-          when :facet
-            return "facet"
-          when :text
-            return "t"
-        else
-          raise "Unknown field_type symbol: #{field_type}"
-        end
+        h = {
+          :float => "f",
+          :decimal => "f",
+          :integer => "i",
+          :boolean => "b",
+          :string => "s",
+          :date => "d",
+          :range_float => "rf",
+          :range_integer => "ri",
+          :facet => "facet",
+          :text => "t",
+        }
+        t = h[field_type]
+        raise "Unknown field_type symbol: #{field_type}" if t.nil?
+        t
       elsif field_type.is_a?(String)
         return field_type
       else
