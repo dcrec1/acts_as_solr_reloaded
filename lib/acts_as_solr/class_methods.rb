@@ -13,13 +13,17 @@ module ActsAsSolr #:nodoc:
     #    results = Book.find_by_solr params[:query]
     #  end
     # 
-    # You can also search for specific fields by searching for 'field:value'
+    # For specific fields searching use :filter_queries options
     # 
     # ====options:
     # offset:: - The first document to be retrieved (offset)
     # page:: - The page to be retrieved
     # limit:: - The number of rows per page
     # per_page:: - Alias for limit
+    # filter_queries:: - Use solr filter queries to sort by fields
+    #
+    #             Book.find_by_solr 'ruby', :filter_queries => ['price:5']
+    #
     # order:: - Orders (sort by) the result set using a given criteria:
     #
     #             Book.find_by_solr 'ruby', :order => 'description asc'

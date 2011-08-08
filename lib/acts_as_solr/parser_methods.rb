@@ -4,13 +4,14 @@ module ActsAsSolr #:nodoc:
 
     # Method used by mostly all the ClassMethods when doing a search
     def parse_query(query=nil, options={}, models=nil)
-      valid_options = [ :offset, :limit, :facets, :models, :results_format, :order,
-                                          :scores, :operator, :include, :lazy, :joins, :select, :core,
-                                          :around, :relevance, :highlight, :page, :per_page]
+      valid_options = [ :filter_queries, :offset, :limit, :facets, :models, :results_format, :order,
+        :scores, :operator, :include, :lazy, :joins, :select, :core,
+        :around, :relevance, :highlight, :page, :per_page]
       query_options = {}
       query = sanitize_query(query) if query
-      return nil if (query.nil? || query.strip == '')
-      
+
+      #allow empty queries as a type search will also be done
+      query = nil if (query.nil? || query == '')
 
       raise "Invalid parameters: #{(options.keys - valid_options).join(',')}" unless (options.keys - valid_options).empty?
       begin
@@ -23,6 +24,10 @@ module ActsAsSolr #:nodoc:
 
         query = add_relevance query, options[:relevance]
 
+        raise "Expecting and array of strings for :filter_queries" unless options[:filter_queries].nil? or options[:filter_queries].kind_of?(Array)
+        query_options[:filter_queries] = []
+        query_options[:filter_queries] = replace_types([*options[:filter_queries]].collect{|k| "#{k.sub!(/ *: */,"_t:")}"}) if options[:filter_queries]
+
         # first steps on the facet parameter processing
         if options[:facets]
           query_options[:facets] = {}
@@ -33,7 +38,7 @@ module ActsAsSolr #:nodoc:
           # override the :zeros (it's deprecated anyway) if :mincount exists
           query_options[:facets][:mincount] = options[:facets][:mincount] if options[:facets][:mincount]
           query_options[:facets][:fields] = options[:facets][:fields].collect{|k| "#{k}_facet"} if options[:facets][:fields]
-          query_options[:filter_queries] = replace_types([*options[:facets][:browse]].collect{|k| "#{k.sub!(/ *: */,"_t:")}"}) if options[:facets][:browse]
+          query_options[:filter_queries] += replace_types([*options[:facets][:browse]].collect{|k| "#{k.sub!(/ *: */,"_t:")}"}) if options[:facets][:browse]
           query_options[:facets][:queries] = replace_types(options[:facets][:query].collect{|k| "#{k.sub!(/ *: */,"_t:")}"}) if options[:facets][:query]
 
 
@@ -70,14 +75,15 @@ module ActsAsSolr #:nodoc:
 
         if models.nil?
           # TODO: use a filter query for type, allowing Solr to cache it individually
-          models = "AND #{solr_type_condition}"
+          # The above solution conflits with empty query support
+          models = "#{solr_type_condition}"
           field_list = solr_configuration[:primary_key_field]
         else
           field_list = "id"
         end
 
         query_options[:field_list] = [field_list, 'score']
-        query = "(#{query.gsub(/ *: */,"_t:")}) #{models}"
+        query = query ? "(#{query.gsub(/ *: */,"_t:")}) AND #{models}" : "#{models}"
         order = options[:order].split(/\s*,\s*/).collect{|e| e.gsub(/\s+/,'_t ').gsub(/\bscore_t\b/, 'score')  }.join(',') if options[:order]
         query_options[:query] = replace_types([query])[0] # TODO adjust replace_types to work with String or Array
 
@@ -232,9 +238,8 @@ module ActsAsSolr #:nodoc:
       raise "Invalid option#{'s' if bad_options.size > 1} for faceted date's other param: #{bad_options.join(', ')}. May only be one of :after, :all, :before, :between, :none" if bad_options.size > 0
     end
     
-    # Remove all leading ?'s and *'s from query
     def sanitize_query(query)
-      query.gsub(/\A([\?|\*| ]+)/, '')
+      Solr::Util::query_parser_escape query
     end
 
     private
