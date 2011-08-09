@@ -18,7 +18,7 @@ module ActsAsSolr #:nodoc:
         query = solr_type_condition
       else
         query = sanitize_query(query)
-        query_options[:filter_queries] += solr_type_condition(true)
+        query_options[:filter_queries].push(solr_type_condition)
       end
       query_options[:query] = query
       order = options[:order].split(/\s*,\s*/).collect{|e| e.gsub(/\s+/,'_t ').gsub(/\bscore_t\b/, 'score')  }.join(',') if options[:order]
@@ -107,17 +107,10 @@ module ActsAsSolr #:nodoc:
       end
     end
 
-    def solr_type_condition(filter_query = false)
-      if (filter_query)
-        (subclasses || []).push(self).map do |klass|
-          "#{solr_configuration[:type_field]}:\"#{klass.name}\"" if !klass.name.empty?
-        end.compact
-      else
-        (subclasses || []).inject("(#{solr_configuration[:type_field]}:\"#{self.name}\"") do |condition, subclass|
-          condition << (subclass.name.empty? ? "" : " OR #{solr_configuration[:type_field]}:\"#{subclass.name}\"")
-        end << ')'
-      end
-    end
+    def solr_type_condition
+      (subclasses || []).inject("(#{solr_configuration[:type_field]}:\"#{self.name}\"") do |condition, subclass|
+        condition << (subclass.name.empty? ? "" : " OR #{solr_configuration[:type_field]}:\"#{subclass.name}\"")
+      end << ')'
 
     # Parses the data returned from Solr
     def parse_results(solr_data, options = {})
