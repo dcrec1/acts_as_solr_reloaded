@@ -8,10 +8,20 @@ module ActsAsSolr #:nodoc:
         :scores, :operator, :include, :lazy, :joins, :select, :core,
         :around, :relevance, :highlight, :page, :per_page]
       query_options = {}
-      query = sanitize_query(query) if query
 
+      field_list = models.nil? ? solr_configuration[:primary_key_field] : "id"
+      query_options[:field_list] = [field_list, 'score']
+      query_options[:filter_queries] = []
       #allow empty queries as a type search will also be done
       query = nil if (query.nil? || query == '')
+      if query.nil?
+        query = solr_type_condition
+      else
+        query = sanitize_query(query)
+        query_options[:filter_queries] += solr_type_condition(true)
+      end
+      query_options[:query] = query
+      order = options[:order].split(/\s*,\s*/).collect{|e| e.gsub(/\s+/,'_t ').gsub(/\bscore_t\b/, 'score')  }.join(',') if options[:order]
 
       raise "Invalid parameters: #{(options.keys - valid_options).join(',')}" unless (options.keys - valid_options).empty?
       begin
@@ -25,7 +35,6 @@ module ActsAsSolr #:nodoc:
         query = add_relevance query, options[:relevance]
 
         raise "Expecting and array of strings for :filter_queries" unless options[:filter_queries].nil? or options[:filter_queries].kind_of?(Array)
-        query_options[:filter_queries] = []
         query_options[:filter_queries] = replace_types([*options[:filter_queries]].collect{|k| "#{k.sub!(/ *: */,"_t:")}"}) if options[:filter_queries]
 
         # first steps on the facet parameter processing
@@ -73,20 +82,6 @@ module ActsAsSolr #:nodoc:
           end
         end
 
-        if models.nil?
-          # TODO: use a filter query for type, allowing Solr to cache it individually
-          # The above solution conflits with empty query support
-          models = "#{solr_type_condition}"
-          field_list = solr_configuration[:primary_key_field]
-        else
-          field_list = "id"
-        end
-
-        query_options[:field_list] = [field_list, 'score']
-        query = query ? "(#{query.gsub(/ *: */,"_t:")}) AND #{models}" : "#{models}"
-        order = options[:order].split(/\s*,\s*/).collect{|e| e.gsub(/\s+/,'_t ').gsub(/\bscore_t\b/, 'score')  }.join(',') if options[:order]
-        query_options[:query] = replace_types([query])[0] # TODO adjust replace_types to work with String or Array
-
             if options[:highlight]
             query_options[:highlighting] = {}
             query_options[:highlighting][:field_list] = []
@@ -112,10 +107,16 @@ module ActsAsSolr #:nodoc:
       end
     end
 
-    def solr_type_condition
-      (subclasses || []).inject("(#{solr_configuration[:type_field]}:\"#{self.name}\"") do |condition, subclass|
-        condition << (subclass.name.empty? ? "" : " OR #{solr_configuration[:type_field]}:\"#{subclass.name}\"")
-      end << ')'
+    def solr_type_condition(filter_query = false)
+      if (filter_query)
+        (subclasses || []).push(self).map do |klass|
+          "#{solr_configuration[:type_field]}:\"#{klass.name}\"" if !klass.name.empty?
+        end.compact
+      else
+        (subclasses || []).inject("(#{solr_configuration[:type_field]}:\"#{self.name}\"") do |condition, subclass|
+          condition << (subclass.name.empty? ? "" : " OR #{solr_configuration[:type_field]}:\"#{subclass.name}\"")
+        end << ')'
+      end
     end
 
     # Parses the data returned from Solr
