@@ -33,7 +33,7 @@ class Solr::Request::Select < Solr::Request::Base
   end
 
   def to_hash
-    return {:qt => query_type, :wt => 'ruby'}.merge(@select_params)
+    return {:qt => query_type, :wt => 'ruby', 'json.nl' => 'arrarr'}.merge(@select_params)
   end
   
   def to_s
