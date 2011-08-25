@@ -27,6 +27,10 @@ module ActsAsSolr
         @config ||= YAML::load_file("#{Rails.root}/config/solr.yml")[Rails.env]
       end
 
+      def options
+        @options ||= credentials.merge( :timeout => config['timeout'] )
+      end
+
       def credentials
         @credentials ||= {:username => config['username'], :password => config['password']}
       end
@@ -36,7 +40,7 @@ module ActsAsSolr
       end
     
       def execute(request, core = nil)
-        connection = Solr::Connection.new(url(core), credentials)
+        connection = Solr::Connection.new(url(core), options)
         connection.send request
       end
     end
