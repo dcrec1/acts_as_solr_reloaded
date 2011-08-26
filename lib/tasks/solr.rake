@@ -1,14 +1,22 @@
 namespace :solr do
 
-  desc 'Download and install Solr+Jetty 3.3.0.'
+  SOLR_VERSION = '3.3.0'
+  APACHE_MIRROR = "http://ftp.unicamp.br/pub/apache"
+  SOLR_FILENAME = "apache-solr-#{SOLR_VERSION}.tgz" 
+  SOLR_DIR = "apache-solr-#{SOLR_VERSION}" 
+  SOLR_URL = "#{APACHE_MIRROR}/lucene/solr/#{SOLR_VERSION}/#{SOLR_FILENAME}" 
+
+  desc "Download and install Solr+Jetty #{SOLR_VERSION}."
   task :download do
-    if (File.exists?(Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr/start.jar'))
+    if File.exists?(Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr/start.jar')
       puts 'Solr already downloaded.'
     else
       cd '/tmp'
-      sh 'wget -c http://ftp.unicamp.br/pub/apache/lucene/solr/3.3.0/apache-solr-3.3.0.tgz'
-      sh 'tar xzf apache-solr-3.3.0.tgz'
-      cd 'apache-solr-3.3.0/example'
+      sh "wget -c #{SOLR_URL}"
+      if !File.directory?("/tmp/#{SOLR_DIR}")
+        sh "tar xzf apache-solr-#{SOLR_VERSION}.tgz"
+      end
+      cd "apache-solr-#{SOLR_VERSION}/example"
       cp_r ['../LICENSE.txt', '../NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'], Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr', :verbose => true
       cd 'solr'
       cp_r ['README.txt', 'bin', 'solr.xml'], Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr/solr', :verbose => true
@@ -27,7 +35,7 @@ namespace :solr do
   end
 
   desc 'Starts Solr. Options accepted: RAILS_ENV=your_env, PORT=XX. Defaults to development if none.'
-  task :start => :environment do
+  task :start => [:download, :environment] do
     require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
     FileUtils.mkdir_p(SOLR_LOGS_PATH)
     FileUtils.mkdir_p(SOLR_DATA_PATH)
@@ -62,7 +70,7 @@ namespace :solr do
   end
   
   desc 'Stops Solr. Specify the environment by using: RAILS_ENV=your_env. Defaults to development if none.'
-  task :stop=> :environment do
+  task :stop => :environment do
     require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
     fork do
       if File.exists?(SOLR_PID_FILE)
