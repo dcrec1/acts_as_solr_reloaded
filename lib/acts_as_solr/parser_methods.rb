@@ -111,6 +111,7 @@ module ActsAsSolr #:nodoc:
       (subclasses || []).inject("(#{solr_configuration[:type_field]}:\"#{self.name}\"") do |condition, subclass|
         condition << (subclass.name.empty? ? "" : " OR #{solr_configuration[:type_field]}:\"#{subclass.name}\"")
       end << ')'
+    end
 
     # Parses the data returned from Solr
     def parse_results(solr_data, options = {})
