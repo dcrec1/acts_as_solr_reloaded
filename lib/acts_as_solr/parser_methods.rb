@@ -148,7 +148,7 @@ module ActsAsSolr #:nodoc:
         end unless solr_data.highlighting.nil?
 
       results.update(:facets => solr_data.data['facet_counts']) if options[:facets]
-      results.update({:docs => result, :total => solr_data.total_hits, :max_score => solr_data.max_score, :query_time => solr_data.data['responseHeader']['QTime']})
+      results.update({:docs => result, :total => result.count, :max_score => solr_data.max_score, :query_time => solr_data.data['responseHeader']['QTime']})
       results.update({:highlights=>highlighted})
       SearchResults.new(results)
     end
