@@ -35,7 +35,7 @@ module ActsAsSolr #:nodoc:
         query = add_relevance query, options[:relevance]
 
         raise "Expecting and array of strings for :filter_queries" unless options[:filter_queries].nil? or options[:filter_queries].kind_of?(Array)
-        query_options[:filter_queries] = replace_types([*options[:filter_queries]].collect{|k| "#{k.dup.sub!(/ *: */,"_t:")}"}) if options[:filter_queries]
+        query_options[:filter_queries] += replace_types([*options[:filter_queries]].collect{|k| "#{k.dup.sub!(/ *: */,"_t:")}"}) if options[:filter_queries]
 
         # first steps on the facet parameter processing
         if options[:facets]
