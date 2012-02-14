@@ -13,7 +13,7 @@ Install as a plugin
 
     script/plugin install git://github.com/brauliobo/acts_as_solr_reloaded.git
 
-Download Solr 3.1
+Download Solr 3.5
 
     rake solr:download
 

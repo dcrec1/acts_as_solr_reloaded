@@ -1,6 +1,6 @@
 namespace :solr do
 
-  SOLR_VERSION = '3.3.0'
+  SOLR_VERSION = '3.5.0'
   APACHE_MIRROR = "http://ftp.unicamp.br/pub/apache"
   SOLR_FILENAME = "apache-solr-#{SOLR_VERSION}.tgz" 
   SOLR_DIR = "apache-solr-#{SOLR_VERSION}" 
