@@ -24,9 +24,13 @@ class Solr::Util
   def self.paired_array_to_hash(a)
     Hash[*a]
   end
+
+  # from http://lucene.apache.org/core/old_versioned_docs/versions/3_0_0/queryparsersyntax.html#Escaping Special Characters
+  ESCAPES = %w[+ - && || ! ( ) { } \[ \] ^ " ~ * ? : \\]
   
   def self.query_parser_escape(string)
-    # backslash prefix everything that isn't a word character
-    string.gsub(/(\W)/,'\\\\\1')
+    string = string.dup
+    ESCAPES.each { |e| string.gsub! e, "\\#{e}" }
+    string
   end
 end
