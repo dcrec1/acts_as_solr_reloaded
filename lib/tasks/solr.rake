@@ -8,24 +8,25 @@ namespace :solr do
 
   desc "Download and install Solr+Jetty #{SOLR_VERSION}."
   task :download do
-    if File.exists?(Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr/start.jar')
+    if File.exists?(Rails.root + 'vendor/plugins/acts_as_solr_reloaded/solr/start.jar')
       puts 'Solr already downloaded.'
     else
-      cd '/tmp'
-      sh "wget -c #{SOLR_URL}"
-      if !File.directory?("/tmp/#{SOLR_DIR}")
-        sh "tar xzf apache-solr-#{SOLR_VERSION}.tgz"
+      Dir.chdir '/tmp' do
+        sh "wget -c #{SOLR_URL}"
+        if !File.directory?("/tmp/#{SOLR_DIR}")
+          sh "tar xzf apache-solr-#{SOLR_VERSION}.tgz"
+        end
+        cd "apache-solr-#{SOLR_VERSION}/example"
+        cp_r ['../LICENSE.txt', '../NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'], Rails.root + 'vendor/plugins/acts_as_solr_reloaded/solr', :verbose => true
+        cd 'solr'
+        cp_r ['README.txt', 'bin', 'solr.xml'], Rails.root + 'vendor/plugins/acts_as_solr_reloaded/solr/solr', :verbose => true
       end
-      cd "apache-solr-#{SOLR_VERSION}/example"
-      cp_r ['../LICENSE.txt', '../NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'], Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr', :verbose => true
-      cd 'solr'
-      cp_r ['README.txt', 'bin', 'solr.xml'], Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr/solr', :verbose => true
     end
   end
 
   desc 'Remove Solr instalation from the tree.'
   task :remove do
-    solr_root = Rails.root + '/vendor/plugins/acts_as_solr_reloaded/solr/'
+    solr_root = Rails.root + 'vendor/plugins/acts_as_solr_reloaded/solr/'
     rm_r ['README.txt', 'bin', 'solr.xml'].map{ |i| File.join(solr_root, 'solr', i) }, :verbose => true, :force => true
     rm_r ['LICENSE.txt', 'NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'].map{ |i| File.join(solr_root, i) }, :verbose => true, :force => true
   end
@@ -58,11 +59,11 @@ namespace :solr do
           exec cmd
         else
           pid = fork do
+            Process.setpgrp
             STDERR.close
             exec cmd 
           end
         end
-        sleep(5)
         File.open(SOLR_PID_FILE, "w"){ |f| f << pid} unless windows
         puts "#{ENV['RAILS_ENV']} Solr started successfully on #{SOLR_HOST}:#{SOLR_PORT}, pid: #{pid}."
       end
@@ -78,14 +79,13 @@ namespace :solr do
         File.open(SOLR_PID_FILE, "r") do |f| 
           pid = f.readline
           begin
-            Process.kill('TERM', pid.to_i)
+            Process.kill('TERM', -pid.to_i)
             killed = true
           rescue
             puts "Solr could not be found at pid #{pid.to_i}. Removing pid file."
           end
         end
         File.unlink(SOLR_PID_FILE)
-        Rake::Task["solr:destroy_index"].invoke if ENV['RAILS_ENV'] == 'test'
         puts "Solr shutdown successfully." if killed
       else
         puts "PID file not found at #{SOLR_PID_FILE}. Either Solr is not running or no PID file was written."
