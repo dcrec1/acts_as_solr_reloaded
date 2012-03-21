@@ -103,7 +103,7 @@ namespace :solr do
   
       if clear_first
         puts "Clearing index for #{model}..."
-        ActsAsSolr::Post.execute(Solr::Request::Delete.new(:query => "#{model.solr_configuration[:type_field]}:#{Solr::Util.query_parser_escape(model)}"))
+        ActsAsSolr::Post.execute(Solr::Request::Delete.new(:query => "#{model.solr_configuration[:type_field]}:#{Solr::Util.query_parser_escape(model.name)}"))
         ActsAsSolr::Post.execute(Solr::Request::Commit.new)
       end
       
