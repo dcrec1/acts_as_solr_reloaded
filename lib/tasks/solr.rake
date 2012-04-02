@@ -41,6 +41,8 @@ namespace :solr do
     FileUtils.mkdir_p(SOLR_LOGS_PATH)
     FileUtils.mkdir_p(SOLR_DATA_PATH)
     FileUtils.mkdir_p(SOLR_PIDS_PATH)
+
+    # test if there is a solr already running
     begin
       n = Net::HTTP.new('127.0.0.1', SOLR_PORT)
       n.request_head('/').value 
@@ -73,24 +75,29 @@ namespace :solr do
   desc 'Stops Solr. Specify the environment by using: RAILS_ENV=your_env. Defaults to development if none.'
   task :stop => :environment do
     require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
-    fork do
-      if File.exists?(SOLR_PID_FILE)
-        killed = false
-        File.open(SOLR_PID_FILE, "r") do |f| 
-          pid = f.readline
-          begin
-            Process.kill('TERM', -pid.to_i)
-            killed = true
-          rescue
-            puts "Solr could not be found at pid #{pid.to_i}. Removing pid file."
-          end
+    if File.exists?(SOLR_PID_FILE)
+      killed = false
+      File.open(SOLR_PID_FILE, "r") do |f| 
+        pid = f.readline
+        begin
+          Process.kill('TERM', -pid.to_i)
+          sleep 3
+          killed = true
+        rescue
+          puts "Solr could not be found at pid #{pid.to_i}. Removing pid file."
         end
-        File.unlink(SOLR_PID_FILE)
-        puts "Solr shutdown successfully." if killed
-      else
-        puts "PID file not found at #{SOLR_PID_FILE}. Either Solr is not running or no PID file was written."
       end
+      File.unlink(SOLR_PID_FILE)
+      puts "Solr shutdown successfully." if killed
+    else
+      puts "PID file not found at #{SOLR_PID_FILE}. Either Solr is not running or no PID file was written."
     end
+  end
+
+  desc 'Restart Solr. Specify the environment by using: RAILS_ENV=your_env. Defaults to development if none.'
+  task :restart => :environment do
+    Rake::Task["solr:stop"].invoke 
+    Rake::Task["solr:start"].invoke 
   end
   
   desc 'Remove Solr index'
