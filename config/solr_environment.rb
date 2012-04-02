@@ -27,7 +27,7 @@ end
 
 unless defined? SOLR_PORT
   config = YAML::load_file(RAILS_ROOT+'/config/solr.yml')
-  raise("No solr environment defined for RAILS_ENV the #{ENV['RAILS_ENV'].inspect}") unless config[ENV['RAILS_ENV']]
+  raise("No solr environment defined for RAILS_ENV = #{ENV['RAILS_ENV'].inspect}") unless config[ENV['RAILS_ENV']]
 
   SOLR_HOST = ENV['HOST'] || URI.parse(config[ENV['RAILS_ENV']]['url']).host
   SOLR_PORT = ENV['PORT'] || URI.parse(config[ENV['RAILS_ENV']]['url']).port
