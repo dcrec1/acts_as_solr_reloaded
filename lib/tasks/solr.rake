@@ -117,36 +117,35 @@ namespace :solr do
   task :reindex => :environment do
     require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
 
-    includes = env_array_to_constants('ONLY')
-    if includes.empty?
-      includes = Dir.glob("#{RAILS_ROOT}/app/models/*.rb").map { |path| File.basename(path, ".rb").camelize.constantize }
-    end
-    excludes = env_array_to_constants('EXCEPT')
-    includes -= excludes
-    
-    optimize            = env_to_bool('OPTIMIZE',     true)
-    start_server        = env_to_bool('START_SERVER', false)
-    clear_first         = env_to_bool('CLEAR',       true)
-    batch_size          = ENV['BATCH'].to_i.nonzero? || 300
-    debug_output        = env_to_bool("DEBUG", false)
+    delayed_job  = env_to_bool('DELAYED_JOB', false)
+    optimize     = env_to_bool('OPTIMIZE', !delayed_job)
+    start_server = env_to_bool('START_SERVER', false)
+    offset       = ENV['OFFSET'].to_i.nonzero? || 0
+    clear_first  = env_to_bool('CLEAR', offset == 0)
+    batch_size   = ENV['BATCH'].to_i.nonzero? || 300
+    debug_output = env_to_bool("DEBUG", false)
+    models       = (ENV['MODELS'] || '').split(',').map{ |m| m.constantize }
+    threads      = (ENV['THREADS'] || '2').to_i
 
-    RAILS_DEFAULT_LOGGER.level = ActiveSupport::BufferedLogger::INFO unless debug_output
+    logger = ActiveRecord::Base.logger = Logger.new(STDOUT)
+    logger.level = ActiveSupport::BufferedLogger::INFO unless debug_output
+    Dir["#{Rails.root}/app/models/*.rb"].each{ |file| require file }
 
     if start_server
       puts "Starting Solr server..."
       Rake::Task["solr:start"].invoke 
     end
     
-    # Disable solr_optimize
+    # Disable optimize and commit
     module ActsAsSolr::CommonMethods
       def blank() end
       alias_method :deferred_solr_optimize, :solr_optimize
       alias_method :solr_optimize, :blank
+      alias_method :solr_commit, :blank
     end
     
-    models = includes.select { |m| m.respond_to?(:rebuild_solr_index) }    
+    models = $solr_indexed_models unless models.count > 0
     models.each do |model|
-  
       if clear_first
         puts "Clearing index for #{model}..."
         ActsAsSolr::Post.execute(Solr::Request::Delete.new(:query => "#{model.solr_configuration[:type_field]}:#{Solr::Util.query_parser_escape(model.name)}"))
@@ -154,27 +153,18 @@ namespace :solr do
       end
       
       puts "Rebuilding index for #{model}..."
-      model.rebuild_solr_index(batch_size)
-
+      model.rebuild_solr_index batch_size, :offset => offset, :threads => threads, :delayed_job => delayed_job
+      puts "Commiting changes..."
+      ActsAsSolr::Post.execute(Solr::Request::Commit.new)
     end 
 
-    if models.empty?
+    if $solr_indexed_models.empty?
       puts "There were no models to reindex."
     elsif optimize
       puts "Optimizing..."
       models.last.deferred_solr_optimize
     end
 
-    if start_server
-      puts "Shutting down Solr server..."
-      Rake::Task["solr:stop"].invoke 
-    end
-    
-  end
-  
-  def env_array_to_constants(env)
-    env = ENV[env] || ''
-    env.split(/\s*,\s*/).map { |m| m.singularize.camelize.constantize }.uniq
   end
   
   def env_to_bool(env, default)
