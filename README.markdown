@@ -25,6 +25,8 @@ Configuration
 ======
 See config/solr.yml file.
 
+For solr configuration the important files are solrconfig.xml and schema.xml.
+
 Basic Usage
 ======
 <pre><code>
