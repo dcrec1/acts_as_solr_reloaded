@@ -257,7 +257,7 @@ module ActsAsSolr #:nodoc:
         :additional_fields => nil,
         :dynamic_attributes => false,
         :exclude_fields => [],
-        :auto_commit => true,
+        :auto_commit => ['production'].include?(Rails.env) ? false : true,
         :include => nil,
         :facets => nil,
         :boost => nil,
