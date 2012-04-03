@@ -41,7 +41,7 @@
     <fieldType name="slong" class="solr.SortableLongField" sortMissingLast="true" omitNorms="false"/>
     <fieldType name="sfloat" class="solr.SortableFloatField" sortMissingLast="true" omitNorms="false"/>
     <fieldType name="sdouble" class="solr.SortableDoubleField" sortMissingLast="true" omitNorms="false"/>
-    <fieldType name="date" class="solr.DateField" sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="date" class="solr.TrieDateField" sortMissingLast="true" omitNorms="false"/>
     <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
@@ -50,24 +50,48 @@
 
     <fieldType name="text" class="solr.TextField" autoGeneratePhraseQueries="false">
       <analyzer type="index">
-        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+
+	<filter class="solr.ASCIIFoldingFilterFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0"/>
+
+	<filter class="solr.StopFilterFactory" words="stopwords.pt.txt" />
+
+	<!-- stemming
+	-->
+	<filter class="solr.KeywordMarkerFilterFactory" protected="protwords.pt.txt" />
+	<filter class="solr.PortugueseStemFilterFactory" />
+	<!-- too slow
 	<filter class="solr.HunspellStemFilterFactory" dictionary="en_US.dic" affix="en_US.aff" ignoreCase="true" />
 	<filter class="solr.HunspellStemFilterFactory" dictionary="pt_PT.dic" affix="pt_PT.aff" ignoreCase="true" />
-	<filter class="solr.ASCIIFoldingFilterFactory"/>
+	-->
+
+	<!-- improvised stemming
 	<filter class="solr.EdgeNGramFilterFactory" minGramSize="3" maxGramSize="20" side="front"/>
+	-->
       </analyzer>
       <analyzer type="query">
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+
+	<filter class="solr.ASCIIFoldingFilterFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0"/>
+
+	<filter class="solr.StopFilterFactory" words="stopwords.pt.txt" />
+
+	<!-- stemming
+	-->
+	<filter class="solr.KeywordMarkerFilterFactory" protected="protwords.pt.txt" />
+	<filter class="solr.PortugueseStemFilterFactory" />
+	<!-- too slow
 	<filter class="solr.HunspellStemFilterFactory" dictionary="en_US.dic" affix="en_US.aff" ignoreCase="true" />
 	<filter class="solr.HunspellStemFilterFactory" dictionary="pt_PT.dic" affix="pt_PT.aff" ignoreCase="true" />
-	<filter class="solr.ASCIIFoldingFilterFactory"/>
+	-->
+
+	<!-- improvised stemming
 	<filter class="solr.EdgeNGramFilterFactory" minGramSize="3" maxGramSize="20" side="front"/>
+	-->
       </analyzer>
     </fieldType>
 
@@ -93,11 +117,18 @@
       </analyzer>
     </fieldType>
 
+    <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
+
  </types>
 
 
  <fields>
+   <field name="latlng" type="location" indexed="true" stored="true" />
+   <field name="latlng_0_coordinate" type="sdouble" indexed="true" stored="true" multiValued="false"/>
+   <field name="latlng_1_coordinate" type="sdouble" indexed="true" stored="true" multiValued="false"/>
+
    <field name="id" type="string" indexed="true" stored="true" required="true" />
+   <field name="type_s" type="string" indexed="true" stored="false" />
    <field name="pk_i" type="integer" indexed="true" stored="true"/>
    <field name="pk_s" type="string" indexed="true" stored="true"/>
    <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
@@ -106,9 +137,10 @@
    <dynamicField name="*_i" type="integer" indexed="true" stored="false"/>
    <dynamicField name="*_t" type="text" indexed="true" stored="true"/>
    <dynamicField name="*_f" type="float" indexed="true" stored="false" multiValued="false"/>
+   <dynamicField name="*_do" type="double" indexed="true" stored="false" multiValued="false"/>
    <dynamicField name="*_b" type="boolean" indexed="true" stored="false"/>
    <dynamicField name="*_d" type="date" indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_s" type="string" indexed="true" stored="false" multiValued="false"/>
+   <dynamicField name="*_s" type="string" indexed="true" stored="true" multiValued="false"/>
    <dynamicField name="*_ri" type="sint" indexed="true" stored="false"/>
    <dynamicField name="*_rf" type="sfloat" indexed="true" stored="false"/>
    <dynamicField name="*_facet" type="string" indexed="true" stored="false"/>
@@ -124,6 +156,9 @@
 
  <uniqueKey>id</uniqueKey>
  <defaultSearchField>text</defaultSearchField>
+
+ <copyField source="lat_f" dest="latlng_0_coordinate"/>
+ <copyField source="lng_f" dest="latlng_1_coordinate"/>
 
  <copyField source="*_s" dest="text"/>
  <copyField source="*_s" dest="spell"/>
