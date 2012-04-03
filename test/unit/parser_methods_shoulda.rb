@@ -263,36 +263,28 @@ class ParserMethodsTest < Test::Unit::TestCase
       ActsAsSolr::Post.expects(:execute).with {|request, core|
         request.to_hash[:qt] == ('geo')
       }
-      @parser.parse_query "foo" , :around => {:latitude => '-39.36',
-        :longitude => '77.4027',
-        :radius => 1}
+      @parser.parse_query "foo" , :latitude => '-39.36', :longitude => '77.4027', :radius => 1
     end
 
     should "set the radius" do
       ActsAsSolr::Post.expects(:execute).with {|request, core|
         request.to_hash[:radius] == 12
       }
-      @parser.parse_query "foo" , :around => {:latitude => '-39.36',
-        :longitude => '77.4027',
-        :radius => 12}
+      @parser.parse_query "foo" , :latitude => '-39.36', :longitude => '77.4027', :radius => 12
     end
 
     should "set the latitude" do
       ActsAsSolr::Post.expects(:execute).with {|request, core|
         request.to_hash[:lat] == '-39.36'
       }
-      @parser.parse_query "foo" , :around => {:latitude => '-39.36',
-        :longitude => '77.4027',
-        :radius => 12}
+      @parser.parse_query "foo" , :latitude => '-39.36', :longitude => '77.4027', :radius => 12
     end
 
     should "set the longitude" do
       ActsAsSolr::Post.expects(:execute).with {|request, core|
         request.to_hash[:long] == '77.4027'
       }
-      @parser.parse_query "foo" , :around => {:latitude => '-39.36',
-        :longitude => '77.4027',
-        :radius => 12}
+      @parser.parse_query "foo" , :latitude => '-39.36', :longitude => '77.4027', :radius => 12
     end
   end
 

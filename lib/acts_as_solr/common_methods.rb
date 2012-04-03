@@ -1,23 +1,25 @@
 module ActsAsSolr #:nodoc:
   
   module CommonMethods
-    
+
+    TypeMapping = {
+      :double => "do",
+      :float => "f",
+      :decimal => "f",
+      :integer => "i",
+      :boolean => "b",
+      :string => "s",
+      :date => "d",
+      :range_float => "rf",
+      :range_integer => "ri",
+      :facet => "facet",
+      :text => "t",
+    }
+
     # Converts field types into Solr types
     def get_solr_field_type(field_type)
       if field_type.is_a?(Symbol)
-        h = {
-          :float => "f",
-          :decimal => "f",
-          :integer => "i",
-          :boolean => "b",
-          :string => "s",
-          :date => "d",
-          :range_float => "rf",
-          :range_integer => "ri",
-          :facet => "facet",
-          :text => "t",
-        }
-        t = h[field_type]
+        t = TypeMapping[field_type]
         raise "Unknown field_type symbol: #{field_type}" if t.nil?
         t
       elsif field_type.is_a?(String)
@@ -34,7 +36,7 @@ module ActsAsSolr #:nodoc:
           return "false"
         when "s", "t", "d", :date, :string, :text
           return ""
-        when "f", "rf", :float, :range_float
+        when "f", "rf", :float, :range_float, :double, :decimal
           return 0.00
         when "i", "ri", :integer, :range_integer
           return 0

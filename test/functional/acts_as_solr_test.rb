@@ -438,16 +438,12 @@ class ActsAsSolrTest < Test::Unit::TestCase
   end
 
   def test_search_given_a_radius
-    records = Advertise.search "bike", :around => {:latitude => '-39.36',
-                                                   :longitude => '77.4027',
-                                                   :radius => 1}
+    records = Advertise.search "bike", :latitude => '-39.36', :longitude => '77.4027', :radius => 1
     assert_equal 0, records.total
   end
 
   def test_records_are_found_in_a_radius
-    records = Advertise.search "bike", :around => {:latitude => '39.36',
-                                                   :longitude => '-77.4027',
-                                                   :radius => 1}
+    records = Advertise.search "bike", :latitude => '39.36', :longitude => '-77.4027', :radius => 1
     assert_equal 1, records.total
   end
 

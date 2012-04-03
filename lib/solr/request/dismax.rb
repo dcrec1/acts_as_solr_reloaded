@@ -13,33 +13,24 @@
 class Solr::Request::Dismax < Solr::Request::Standard
 
   VALID_PARAMS.replace(VALID_PARAMS + [:tie_breaker, :query_fields, :minimum_match, :phrase_fields, :phrase_slop,
-                                       :boost_query, :boost_functions])
+                                       :alternate_query, :boost_query, :boost_functions])
 
   def initialize(params)
-    @alternate_query = params.delete(:alternate_query)
-    @sort_values = params.delete(:sort)
-    
-    super
-    
-    @query_type = "dismax"
+    super("search")
   end
   
   def to_hash
     hash = super
+    hash[:defType] = 'edismax'
     hash[:tie] = @params[:tie_breaker]
     hash[:mm]  = @params[:minimum_match]
     hash[:qf]  = @params[:query_fields]
     hash[:pf]  = @params[:phrase_fields]
     hash[:ps]  = @params[:phrase_slop]
     hash[:bq]  = @params[:boost_query]
-    hash[:bf]  = @params[:boost_functions]
-    hash["q.alt"] = @alternate_query
-    # FIXME: 2007-02-13 <coda.hale@gmail.com> --  This code is duplicated in
-    # Solr::Request::Standard. It should be refactored into a single location.
-    hash[:sort] = @sort_values.collect do |sort|
-      key = sort.keys[0]
-      "#{key.to_s} #{sort[key] == :descending ? 'desc' : 'asc'}"
-    end.join(',') if @sort_values
+    hash[:boost]  = @params[:boost_functions]
+    hash["q.alt"] = @params[:alternate_query]
+
     return hash
   end
 

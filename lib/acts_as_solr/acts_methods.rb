@@ -1,3 +1,6 @@
+# a list of models which called acts_as_solr
+$solr_indexed_models = []
+
 module ActsAsSolr #:nodoc:
 
   module ActsMethods
@@ -161,9 +164,14 @@ module ActsAsSolr #:nodoc:
     # dynamic_attributes: Default false. When true, requires a has_many relationship to a DynamicAttribute
     #                     (:name, :value) model. Then, all dynamic attributes will be mapped as normal attributes
     #                    in Solr, so you can filter like this: Model.find_by_solr "#{dynamic_attribute.name}:Lorem"
+    #
     # taggable: Default false. When true, indexes tags with field name tag. Tags are taken from taggings.tag
+    #
     # spatial: Default false. When true, indexes model.local.latitude and model.local.longitude as coordinates.
+    # 
     def acts_as_solr(options={}, solr_options={}, &deferred_solr_configuration)
+
+      $solr_indexed_models << self
 
       extend ClassMethods
       include InstanceMethods
@@ -263,13 +271,16 @@ module ActsAsSolr #:nodoc:
         :boost => nil,
         :if => "true",
         :offline => false,
-        :spatial => false
+        :spatial => false,
       }
       self.solr_configuration = {
         :type_field => "type_s",
         :primary_key_field => "pk_s",
-        :default_boost => 1.0
+        :default_boost => 1.0,
       }
+
+      raise "Invalid options: #{(options.keys-configuration.keys).join(',')}" unless (options.keys-configuration.keys).empty?
+      raise "Invalid solr options: #{(solr_options.keys-solr_configuration.keys).join(',')}" unless (solr_options.keys-solr_configuration.keys).empty?
 
       configuration.update(options) if options.is_a?(Hash)
       solr_configuration.update(solr_options) if solr_options.is_a?(Hash)
@@ -285,8 +296,8 @@ module ActsAsSolr #:nodoc:
         process_fields(configuration[:additional_fields])
       end
 
-      if configuration[:include].respond_to?(:each)
-        process_includes(configuration[:include])
+      process_includes(configuration[:include]) if configuration[:include]
+    end
 
     def after_save_reindex(associations, options = {})
       Array(associations).each do |association|
@@ -306,19 +317,13 @@ module ActsAsSolr #:nodoc:
       field_name, options = determine_field_name_and_options(field)
       configuration[:solr_fields][field_name] = options
 
-      define_method("#{field_name}_for_solr".to_sym) do
-        begin
-          value = self[field_name] || self.instance_variable_get("@#{field_name.to_s}".to_sym) || self.send(field_name.to_sym)
-          case options[:type]
-            # format dates properly; return nil for nil dates
-            when :date
-              value ? (value.respond_to?(:utc) ? value.utc : value).strftime("%Y-%m-%dT%H:%M:%SZ") : nil
-            else value
-          end
-        rescue
-          puts $!
-          logger.debug "There was a problem getting the value for the field '#{field_name}': #{$!}"
-          value = ''
+      define_method "#{field_name}_for_solr" do
+        value = self.send field_name
+        case options[:type]
+        when :date # format dates properly; return nil for nil dates
+          value ? (value.respond_to?(:utc) ? value.utc : value).strftime("%Y-%m-%dT%H:%M:%SZ") : nil
+        else
+          value
         end
       end
     end
@@ -333,11 +338,9 @@ module ActsAsSolr #:nodoc:
     end
 
     def process_includes(includes)
-      if includes.respond_to?(:each)
-        includes.each do |assoc|
-          field_name, options = determine_field_name_and_options(assoc)
-          configuration[:solr_includes][field_name] = options
-        end
+      Array(includes).each do |assoc|
+        field_name, options = determine_field_name_and_options(assoc)
+        configuration[:solr_includes][field_name] = options
       end
     end
 
@@ -381,3 +384,4 @@ module ActsAsSolr #:nodoc:
     end
   end
 end
+

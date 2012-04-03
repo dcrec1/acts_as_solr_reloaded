@@ -30,7 +30,7 @@ module ActsAsSolr #:nodoc:
       end
       if options[:sort_by]
         plog "The option :sort_by is deprecated, use :order instead!"
-        options[:order] ||= options[:sort_by]
+        options[:sort] ||= options[:sort_by]
       end
       if options[:start]
         plog "The option :start is deprecated, use :offset instead!"

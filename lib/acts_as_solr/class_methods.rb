@@ -197,7 +197,7 @@ module ActsAsSolr #:nodoc:
       data = parse_query(query, options)
       data.total_hits
     end
-            
+
     # It's used to rebuild the Solr index for a specific model. 
     #  Book.rebuild_solr_index
     # 
@@ -209,38 +209,77 @@ module ActsAsSolr #:nodoc:
     # If a finder block is given, it will be called to retrieve the items to index.
     # This can be very useful for things such as updating based on conditions or
     # using eager loading for indexed associations.
-    def rebuild_solr_index(batch_size=100, &finder)
-      finder ||= lambda { |ar, options| ar.find(:all, options.merge({:order => self.primary_key})) }
+    def rebuild_solr_index(batch_size=300, options = {}, &finder)
+      finder ||= lambda do |ar, sql_options|
+        ar.all sql_options.merge!({:order => self.primary_key, :include => configuration[:solr_includes].keys})
+      end
       start_time = Time.now
+      options[:offset] ||= 0
+      options[:threads] ||= 2
+      options[:delayed_job] &= defined?(Delayed::Job)
 
       if batch_size > 0
         items_processed = 0
-        limit = batch_size
-        offset = 0
-        begin
-          iteration_start = Time.now
-          items = finder.call(self, {:limit => limit, :offset => offset})
+        offset = options[:offset]
+        end_reached = false
+        threads = []
+        mutex = Mutex.new
+        queue = Queue.new
+        loop do
+          items = finder.call(self, {:limit => batch_size, :offset => offset})
           add_batch = items.collect { |content| content.to_solr_doc }
-    
-          if items.size > 0
-            solr_add add_batch
-            solr_commit
-          end
-    
-          items_processed += items.size
-          last_id = items.last.id if items.last
-          time_so_far = Time.now - start_time
-          iteration_time = Time.now - iteration_start         
-          logger.info "#{Process.pid}: #{items_processed} items for #{self.name} have been batch added to index in #{'%.3f' % time_so_far}s at #{'%.3f' % (items_processed / time_so_far)} items/sec (#{'%.3f' % (items.size / iteration_time)} items/sec for the last batch). Last id: #{last_id}"
           offset += items.size
-        end while items.nil? || items.size > 0
+          end_reached = items.size == 0
+          break if end_reached
+
+          if options[:threads] == threads.size
+            threads.first.join 
+            threads.shift
+          end
+
+          queue << [items, add_batch]
+          threads << Thread.new do
+            iteration_start = Time.now
+
+            iteration_items, iteration_add_batch = queue.pop(true)
+            if options[:delayed_job]
+              delay.solr_add iteration_add_batch
+            else
+              solr_add iteration_add_batch
+              solr_commit
+            end
+
+            last_id = iteration_items.last.id
+            time_so_far = Time.now - start_time
+            iteration_time = Time.now - iteration_start         
+            mutex.synchronize do
+              items_processed += iteration_items.size
+              if options[:delayed_job]
+                logger.info "#{Process.pid}: #{items_processed} items for #{self.name} have been sent to Delayed::Job in #{'%.3f' % time_so_far}s at #{'%.3f' % (items_processed / time_so_far)} items/sec. Last id: #{last_id}"
+              else
+                logger.info "#{Process.pid}: #{items_processed} items for #{self.name} have been batch added to index in #{'%.3f' % time_so_far}s at #{'%.3f' % (items_processed / time_so_far)} items/sec. Last id: #{last_id}"
+              end
+            end
+          end
+        end
+
+        solr_commit if options[:delayed_job]
+        threads.each{ |t| t.join }
       else
         items = finder.call(self, {})
         items.each { |content| content.solr_save }
         items_processed = items.size
       end
-      solr_optimize
-      logger.info items_processed > 0 ? "Index for #{self.name} has been rebuilt" : "Nothing to index for #{self.name}"
+
+      if items_processed > 0
+        solr_optimize
+        time_elapsed = Time.now - start_time
+        logger.info "Index for #{self.name} has been rebuilt (took #{'%.3f' % time_elapsed}s)"
+      else
+        "Nothing to index for #{self.name}"
+      end
     end
+
+    alias :rebuild_index :rebuild_solr_index
   end
 end

@@ -14,10 +14,10 @@ class Solr::Request::Standard < Solr::Request::Select
 
   VALID_PARAMS = [:query, :sort, :default_field, :operator, :start, :rows, :shards, :date_facets,
     :filter_queries, :field_list, :debug_query, :explain_other, :facets, :highlighting, :mlt, :radius, 
-    :latitude, :longitude, :spellcheck]
+    :radius, :latitude, :longitude, :spellcheck]
   
   def initialize(params)
-    super(params[:radius].nil? ? 'standard' : 'geo')
+    super('search')
     
     raise "Invalid parameters: #{(params.keys - VALID_PARAMS).join(',')}" unless 
       (params.keys - VALID_PARAMS).empty?
@@ -51,6 +51,7 @@ class Solr::Request::Standard < Solr::Request::Select
     hash[:q] = @params[:query]
     hash["q.op"] = @params[:operator]
     hash[:df] = @params[:default_field]
+    hash[:echoParams] = 'explicit'
 
     # common parameter processing
     hash[:start] = @params[:start]
@@ -61,11 +62,9 @@ class Solr::Request::Standard < Solr::Request::Select
     hash[:explainOther] = @params[:explain_other]
     hash[:shards] = @params[:shards].join(',') unless @params[:shards].empty?
     
-    #if @params[:qt].eql? 'geo'
-      hash[:radius] = @params[:radius]
-      hash[:lat] = @params[:latitude]
-      hash[:long] = @params[:longitude]
-    #end
+    hash[:sfield] = 'latlng'
+    hash[:d] = @params[:radius]
+    hash[:pt] = "#{@params[:latitude]}, #{@params[:longitude]}"
     
     # facet parameter processing
     if @params[:facets]

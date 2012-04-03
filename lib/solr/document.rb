@@ -18,7 +18,7 @@ class Solr::Document
   # Create a new Solr::Document, optionally passing in a hash of 
   # key/value pairs for the fields
   #
-  #   doc = Solr::Document.new(:creator => 'Jorge Luis Borges')
+  #   doc = Solr::Document.new(:name => :creator, :value => 'Jorge Luis Borges')
   def initialize(hash={})
     @fields = []
     self << hash
@@ -26,19 +26,19 @@ class Solr::Document
 
   # Append a Solr::Field
   #
-  #   doc << Solr::Field.new(:creator => 'Jorge Luis Borges')
+  #   doc << Solr::Field.new(:name => :creator, :value => 'Jorge Luis Borges')
   #
   # If you are truly lazy you can simply pass in a hash:
   #
-  #   doc << {:creator => 'Jorge Luis Borges'}
+  #   doc << {:name => :creator, :value => 'Jorge Luis Borges'}
   def <<(fields)
     case fields
     when Hash
       fields.each_pair do |name,value|
         if value.respond_to?(:each) && !value.is_a?(String)
-          value.each {|v| @fields << Solr::Field.new(name => v)}
+          value.each {|v| @fields << Solr::Field.new(:name => name, :value => v)}
         else
-          @fields << Solr::Field.new(name => value)
+          @fields << Solr::Field.new(:name => name, :value => value)
         end
       end
     when Solr::Field
@@ -58,10 +58,20 @@ class Solr::Document
 
   # shorthand to assign as a hash
   def []=(name,value)
-    @fields << Solr::Field.new(name => value)
+    @fields << Solr::Field.new(:name => name, :value => value)
   end
 
-  # convert the Document to a REXML::Element 
+  def to_jsonhash
+    hash = {'doc' => {}}
+    hash['boost'] = @boost if @boost
+    @fields.each{ |f| hash['doc'][f.name] = f.value_to_jsonhash }
+    hash
+  end
+
+  def to_json
+    to_jsonhash.to_json
+  end
+
   def to_xml
     e = Solr::XML::Element.new 'doc'
     e.attributes['boost'] = @boost.to_s if @boost

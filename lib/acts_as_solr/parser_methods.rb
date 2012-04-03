@@ -4,9 +4,10 @@ module ActsAsSolr #:nodoc:
 
     # Method used by mostly all the ClassMethods when doing a search
     def parse_query(query=nil, options={}, models=nil)
-      valid_options = [ :filter_queries, :offset, :limit, :facets, :models, :results_format, :order,
-        :scores, :operator, :include, :lazy, :joins, :select, :core,
-        :around, :relevance, :highlight, :page, :per_page]
+      valid_options = [ :alternate_query, :boost_functions, :filter_queries, :facets, :models, :sort,
+        :scores, :operator, :lazy, :core, :latitude, :longitude, :radius, :relevance, :highlight,
+        :offset, :per_page, :limit, :page,
+        :results_format, :sql_options]
       query_options = {}
 
       field_list = models.nil? ? solr_configuration[:primary_key_field] : "id"
@@ -20,8 +21,7 @@ module ActsAsSolr #:nodoc:
         query = sanitize_query(query)
         query_options[:filter_queries].push(solr_type_condition)
       end
-      query_options[:query] = query
-      order = options[:order].split(/\s*,\s*/).collect{|e| e.gsub(/\s+/,'_t ').gsub(/\bscore_t\b/, 'score')  }.join(',') if options[:order]
+      query_options[:query] = "#{options[:alternate_query]} #{query}"
 
       raise "Invalid parameters: #{(options.keys - valid_options).join(',')}" unless (options.keys - valid_options).empty?
       begin
@@ -34,8 +34,8 @@ module ActsAsSolr #:nodoc:
 
         query = add_relevance query, options[:relevance]
 
-        raise "Expecting and array of strings for :filter_queries" unless options[:filter_queries].nil? or options[:filter_queries].kind_of?(Array)
-        query_options[:filter_queries] += replace_types([*options[:filter_queries]].collect{|k| "#{k.dup.sub!(/ *: */,"_t:")}"}) if options[:filter_queries]
+        query_options[:filter_queries] += replace_types([*options[:filter_queries]], '') if options[:filter_queries]
+        query_options[:boost_functions] = replace_types([*options[:boost_functions]], '').join(' ') if options[:boost_functions]
 
         # first steps on the facet parameter processing
         if options[:facets]
@@ -47,9 +47,8 @@ module ActsAsSolr #:nodoc:
           # override the :zeros (it's deprecated anyway) if :mincount exists
           query_options[:facets][:mincount] = options[:facets][:mincount] if options[:facets][:mincount]
           query_options[:facets][:fields] = options[:facets][:fields].collect{|k| "#{k}_facet"} if options[:facets][:fields]
-          query_options[:filter_queries] += replace_types([*options[:facets][:browse]].collect{|k| "#{k.dup.sub!(/ *: */,"_t:")}"}) if options[:facets][:browse]
-          query_options[:facets][:queries] = replace_types(options[:facets][:query].collect{|k| "#{k.dup.sub!(/ *: */,"_t:")}"}) if options[:facets][:query]
-
+          query_options[:filter_queries] += replace_types([*options[:facets][:browse]]) if options[:facets][:browse]
+          query_options[:facets][:queries] = replace_types(options[:facets][:query]) if options[:facets][:query]
 
           if options[:facets][:dates]
             query_options[:date_facets] = {}
@@ -72,7 +71,7 @@ module ActsAsSolr #:nodoc:
             query_options[:date_facets][:end]     = options[:facets][:dates][:end] if options[:facets][:dates][:end]
             query_options[:date_facets][:gap]     = options[:facets][:dates][:gap] if options[:facets][:dates][:gap]
             query_options[:date_facets][:hardend] = options[:facets][:dates][:hardend] if options[:facets][:dates][:hardend]
-            query_options[:date_facets][:filter]  = replace_types([*options[:facets][:dates][:filter]].collect{|k| "#{k.sub!(/ *:(?!\d) */,"_d:")}"}) if options[:facets][:dates][:filter]
+            query_options[:date_facets][:filter]  = replace_types([*options[:facets][:dates][:filter]].collect{|k| "#{k.dup.sub!(/ *:(?!\d) */,"_d:")}"}) if options[:facets][:dates][:filter]
 
             if options[:facets][:dates][:other]
               validate_date_facet_other_options(options[:facets][:dates][:other])
@@ -82,28 +81,25 @@ module ActsAsSolr #:nodoc:
           end
         end
 
-            if options[:highlight]
-            query_options[:highlighting] = {}
-            query_options[:highlighting][:field_list] = []
-            query_options[:highlighting][:field_list] << options[:highlight][:fields].collect {|k| "#{k}_t"} if options[:highlight][:fields]
-            query_options[:highlighting][:require_field_match] =  options[:highlight][:require_field_match] if options[:highlight][:require_field_match]
-            query_options[:highlighting][:max_snippets] = options[:highlight][:max_snippets] if options[:highlight][:max_snippets]
-            query_options[:highlighting][:prefix] = options[:highlight][:prefix] if options[:highlight][:prefix]
-            query_options[:highlighting][:suffix] = options[:highlight][:suffix] if options[:highlight][:suffix]
-           end
-
-        # TODO: set the sort parameter instead of the old ;order. style.
-        query_options[:sort] = replace_types([order], false)[0] if options[:order]
-
-        if options[:around]
-          query_options[:radius] = options[:around][:radius]
-          query_options[:latitude] = options[:around][:latitude]
-          query_options[:longitude] = options[:around][:longitude]
+        if options[:highlight]
+          query_options[:highlighting] = {}
+          query_options[:highlighting][:field_list] = []
+          query_options[:highlighting][:field_list] << options[:highlight][:fields].collect {|k| "#{k}_t"} if options[:highlight][:fields]
+          query_options[:highlighting][:require_field_match] =  options[:highlight][:require_field_match] if options[:highlight][:require_field_match]
+          query_options[:highlighting][:max_snippets] = options[:highlight][:max_snippets] if options[:highlight][:max_snippets]
+          query_options[:highlighting][:prefix] = options[:highlight][:prefix] if options[:highlight][:prefix]
+          query_options[:highlighting][:suffix] = options[:highlight][:suffix] if options[:highlight][:suffix]
         end
 
-        ActsAsSolr::Post.execute(Solr::Request::Standard.new(query_options), options[:core])
+        query_options[:sort] = replace_types([options[:sort]], '')[0] if options[:sort]
+
+        query_options[:radius] = options[:radius]
+        query_options[:latitude] = options[:latitude]
+        query_options[:longitude] = options[:longitude]
+
+        ActsAsSolr::Post.execute(Solr::Request::Dismax.new(query_options), options[:core])
       rescue
-        raise "There was a problem executing your search\n#{query_options.inspect}\n: #{$!} in #{$!.backtrace.first}"
+        raise "#{$query} There was a problem executing your search\n#{query_options.inspect}\n: #{$!} in #{$!.backtrace.first}"
       end
     end
 
@@ -158,11 +154,11 @@ module ActsAsSolr #:nodoc:
       result = if configuration[:lazy] && configuration[:format] != :ids
         ids.collect {|id| ActsAsSolr::LazyDocument.new(id, self)}
       elsif configuration[:format] == :objects
-        find_options = {}
-        find_options[:include] = options[:include] if options[:include]
-        find_options[:select] = options[:select] if options[:select]
-        find_options[:joins] = options[:joins] if options[:joins]
-        result = reorder(self.find(ids, find_options), ids)
+        find_options = options[:sql_options] || {}
+        find_options[:conditions] = self.send :merge_conditions, {:id => ids}, (find_options[:conditions] || [])
+        result = self.all(find_options)
+        result = reorder(result, ids) unless find_options[:order]
+        result
       else
         ids
       end
@@ -182,14 +178,13 @@ module ActsAsSolr #:nodoc:
 
     # Replaces the field types based on the types (if any) specified
     # on the acts_as_solr call
-    def replace_types(strings, include_colon=true)
-      suffix = include_colon ? ":" : ""
+    def replace_types(strings, suffix=':')
       if configuration[:solr_fields]
         configuration[:solr_fields].each do |name, options|
-          solr_name = options[:as] || name.to_s
+          solr_name = (options[:as] || name).to_s
           solr_type = get_solr_field_type(options[:type])
           field = "#{solr_name}_#{solr_type}#{suffix}"
-          strings.each_with_index {|s,i| strings[i] = s.gsub(/#{solr_name.to_s}_t#{suffix}/,field) }
+          strings.each_with_index {|s,i| strings[i] = s.gsub(/\b#{solr_name}\b#{suffix}/,field) }
         end
       end
       if configuration[:solr_includes]
@@ -197,7 +192,7 @@ module ActsAsSolr #:nodoc:
           solr_name = options[:as] || association.to_s.singularize
           solr_type = get_solr_field_type(options[:type])
           field = "#{solr_name}_#{solr_type}#{suffix}"
-          strings.each_with_index {|s,i| strings[i] = s.gsub(/#{solr_name.to_s}_t#{suffix}/,field) }
+          strings.each_with_index {|s,i| strings[i] = s.gsub(/\b#{solr_name}\b#{suffix}/,field) }
         end
       end
       strings
