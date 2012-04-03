@@ -19,8 +19,7 @@ Download Solr 3.5
 
 Requirements
 ------
-* Java Runtime Environment(JRE) 1.6 aka 6.0 or newer [http://www.java.com/en/download/index.jsp](http://www.java.com/en/download/index.jsp) (use default-jre for Debian like distribution)
-* (Recommended) If you have libxml-ruby installed, make sure it's at least version 0.7
+* Java Runtime Environment(JRE) 6.0 (or newer) from Oracle or OpenJDK
 
 Configuration
 ======
@@ -42,13 +41,21 @@ Basic Usage
 
 </code></pre>
 
-
-`acts_as_solr` in your tests
+Pagination
 ======
-To test code that uses `acts_as_solr` you must start a Solr server for the test environment. You can do that with `rake solr:start RAILS_ENV=test`
+ActsAsSolr implements in SearchResults class an interface compatible with will_paginate and maybe others.
+
+In your tests
+======
+To test code that uses `acts_as_solr` you must start a Solr server for the test environment.
+You can add to the beggining of your test/test_helper.rb the code:
+<pre><code>
+ENV["RAILS_ENV"] = "test"
+abort unless system 'rake solr:start' 
+at_exit { system 'rake solr:stop' }
+</pre></code>
 
 However, if you would like to mock out Solr calls so that a Solr server is not needed (and your tests will run much faster), just add this to your `test_helper.rb` or similar:
-
 <pre><code>
 class ActsAsSolr::Post
   def self.execute(request)
@@ -56,8 +63,6 @@ class ActsAsSolr::Post
   end
 end
 </pre></code>
-
-([via](http://www.subelsky.com/2007/10/actsassolr-capistranhttpwwwbloggercomim.html#c1646308013209805416))
 
 Release Information
 ======
