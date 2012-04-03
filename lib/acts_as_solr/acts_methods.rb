@@ -287,6 +287,16 @@ module ActsAsSolr #:nodoc:
 
       if configuration[:include].respond_to?(:each)
         process_includes(configuration[:include])
+
+    def after_save_reindex(associations, options = {})
+      Array(associations).each do |association|
+        after_save do |ar|
+          if options[:with] == :delayed_job
+            delay(:run_at => (Date.today+1.day).to_time+4.hours).solr_batch_add_association ar, association
+          else
+            solr_batch_add_association ar, association
+          end
+        end
       end
     end
 

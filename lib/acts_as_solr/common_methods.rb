@@ -42,6 +42,14 @@ module ActsAsSolr #:nodoc:
         return ""
       end
     end
+
+    def solr_batch_add(objects)
+      solr_add Array(objects).map{ |a| a.to_solr_doc }
+    end
+
+    def solr_batch_add_association(ar, association)
+      solr_batch_add ar.send(association)
+    end
     
     # Sends an add command to Solr
     def solr_add(add_xml)
