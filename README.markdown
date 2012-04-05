@@ -6,6 +6,8 @@ It was based on the first draft by Erik Hatcher.
 This plugin is intended for use in old versions of Rails. For newer versions, I strongly advice using Sunspot!
 Nevertheless, this plugin is used for Noosfero project in production. Any problem please open an issue.
 
+It should support Rails 2.1 (and greater 2.x) and is developed latest Solr versions, so don't expect it to run on older Solr.
+
 Installation
 ======
 
