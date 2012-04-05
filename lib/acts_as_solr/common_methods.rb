@@ -28,22 +28,6 @@ module ActsAsSolr #:nodoc:
         raise "Unknown field_type class: #{field_type.class}: #{field_type}"
       end
     end
-    
-    # Sets a default value when value being set is nil.
-    def set_value_if_nil(field_type)
-      case field_type
-        when "b", :boolean
-          return "false"
-        when "s", "t", "d", :date, :string, :text
-          return ""
-        when "f", "rf", :float, :range_float, :double, :decimal
-          return 0.00
-        when "i", "ri", :integer, :range_integer
-          return 0
-      else
-        return ""
-      end
-    end
 
     def solr_batch_add(objects)
       solr_add Array(objects).map{ |a| a.to_solr_doc }

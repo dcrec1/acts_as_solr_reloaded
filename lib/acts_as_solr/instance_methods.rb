@@ -45,32 +45,23 @@ module ActsAsSolr #:nodoc:
 
       # iterate through the fields and add them to the document,
       configuration[:solr_fields].each do |field_name, options|
+        next if [self.class.primary_key, "type"].include?(field_name.to_s)
+
         field_boost = options[:boost] || solr_configuration[:default_boost]
         field_type = get_solr_field_type(options[:type])
         solr_name = options[:as] || field_name
         
         value = self.send("#{field_name}_for_solr")
-        value = set_value_if_nil(field_type) if value.to_s == ""
-        
-        # add the field to the document, but only if it's not the id field
-        # or the type field (from single table inheritance), since these
-        # fields have already been added above.
-        if field_name.to_s != self.class.primary_key and field_name.to_s != "type"
-          suffix = get_solr_field_type(field_type)
-          # This next line ensures that e.g. nil dates are excluded from the 
-          # document, since they choke Solr. Also ignores e.g. empty strings, 
-          # but these can't be searched for anyway: 
-          # http://www.mail-archive.com/solr-dev@lucene.apache.org/msg05423.html
-          next if value.nil? || value.to_s.strip.empty?
-          [value].flatten.each do |v|
-            v = set_value_if_nil(suffix) if value.to_s == ""
-        
-            field = Solr::Field.new(:name => "#{solr_name}_#{suffix}", :value => ERB::Util.html_escape(v.to_s))
-            processed_boost = validate_boost(field_boost)
-            field.boost = processed_boost if processed_boost != solr_configuration[:default_boost]
-            doc << field
-          end
-        end
+        next if value.nil?
+
+        suffix = get_solr_field_type(field_type)
+        value = Array(value).map{ |v| ERB::Util.html_escape(v) } # escape each value
+        value = value.first if value.size == 1
+
+        field = Solr::Field.new(:name => "#{solr_name}_#{suffix}", :value => value)
+        processed_boost = validate_boost(field_boost)
+        field.boost = processed_boost if processed_boost != solr_configuration[:default_boost]
+        doc << field
       end
       
       add_dynamic_attributes(doc)

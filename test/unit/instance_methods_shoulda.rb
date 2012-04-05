@@ -225,18 +225,6 @@ class InstanceMethodsTest < Test::Unit::TestCase
           assert_not_equal "bogus", doc[:id]
         end
         
-        should "set the default value if field value is nil" do
-          @instance.name = nil
-          @instance.expects(:set_value_if_nil).with('s')
-          @instance.to_solr_doc
-        end
-        
-        should "not include nil values" do
-          @instance.name = ""
-          @instance.stubs(:set_value_if_nil).returns ""
-          assert_nil @instance.to_solr_doc[:name_s]
-        end
-        
         should "escape the contents" do
           @instance.name = "<script>malicious()</script>"
           assert_equal "&lt;script&gt;malicious()&lt;/script&gt;", @instance.to_solr_doc[:name_s]

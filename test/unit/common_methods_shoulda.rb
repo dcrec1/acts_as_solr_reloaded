@@ -76,43 +76,6 @@ class CommonMethodsTest < Test::Unit::TestCase
     end
   end
   
-  context "when determining a default value for a field when it's nil" do
-    should "return 0.00 for a float" do
-      assert_equal 0.00, set_value_if_nil("f")
-      assert_equal 0.00, set_value_if_nil(:float)
-      assert_equal 0.00, set_value_if_nil("rf")
-      assert_equal 0.00, set_value_if_nil(:range_float)
-    end
-    
-    should "return 0 for an integer" do
-      assert_equal 0, set_value_if_nil(:integer)
-      assert_equal 0, set_value_if_nil(:range_integer)
-      assert_equal 0, set_value_if_nil("i")
-      assert_equal 0, set_value_if_nil("ri")
-    end
-    
-    should "return false for a boolean" do
-      assert_equal "false", set_value_if_nil(:boolean)
-      assert_equal "false", set_value_if_nil("b") 
-    end
-    
-    should "return empty string for strings and text" do
-      assert_equal "", set_value_if_nil(:string)
-      assert_equal "", set_value_if_nil(:text)
-      assert_equal "", set_value_if_nil("t")
-      assert_equal "", set_value_if_nil("s")
-    end
-    
-    should "return an empty string for a date" do
-      assert_equal "", set_value_if_nil(:date)
-      assert_equal "", set_value_if_nil("d")
-    end
-    
-    should "return an empty string for everything else" do
-      assert_equal "", set_value_if_nil("something")
-    end
-  end
-  
   context "when determining the record id" do
     context "on ActiveRecord" do
       should "return the primary key value" do
