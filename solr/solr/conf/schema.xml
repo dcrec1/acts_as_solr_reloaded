@@ -53,45 +53,45 @@
         <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
 
-	<filter class="solr.ASCIIFoldingFilterFactory"/>
+        <filter class="solr.ASCIIFoldingFilterFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
 
-	<filter class="solr.StopFilterFactory" words="stopwords.pt.txt" />
+        <filter class="solr.StopFilterFactory" words="stopwords.pt.txt" />
 
-	<!-- stemming
-	-->
-	<filter class="solr.KeywordMarkerFilterFactory" protected="protwords.pt.txt" />
-	<filter class="solr.PortugueseStemFilterFactory" />
-	<!-- too slow
-	<filter class="solr.HunspellStemFilterFactory" dictionary="en_US.dic" affix="en_US.aff" ignoreCase="true" />
-	<filter class="solr.HunspellStemFilterFactory" dictionary="pt_PT.dic" affix="pt_PT.aff" ignoreCase="true" />
-	-->
+        <!-- stemming
+        -->
+        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.pt.txt" />
+        <filter class="solr.PortugueseStemFilterFactory" />
+        <!-- too slow
+        <filter class="solr.HunspellStemFilterFactory" dictionary="en_US.dic" affix="en_US.aff" ignoreCase="true" />
+        <filter class="solr.HunspellStemFilterFactory" dictionary="pt_PT.dic" affix="pt_PT.aff" ignoreCase="true" />
+        -->
 
-	<!-- improvised stemming
-	<filter class="solr.EdgeNGramFilterFactory" minGramSize="3" maxGramSize="20" side="front"/>
-	-->
+        <!-- improvised stemming
+        <filter class="solr.EdgeNGramFilterFactory" minGramSize="3" maxGramSize="20" side="front"/>
+        -->
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
 
-	<filter class="solr.ASCIIFoldingFilterFactory"/>
+        <filter class="solr.ASCIIFoldingFilterFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
 
-	<filter class="solr.StopFilterFactory" words="stopwords.pt.txt" />
+        <filter class="solr.StopFilterFactory" words="stopwords.pt.txt" />
 
-	<!-- stemming
-	-->
-	<filter class="solr.KeywordMarkerFilterFactory" protected="protwords.pt.txt" />
-	<filter class="solr.PortugueseStemFilterFactory" />
-	<!-- too slow
-	<filter class="solr.HunspellStemFilterFactory" dictionary="en_US.dic" affix="en_US.aff" ignoreCase="true" />
-	<filter class="solr.HunspellStemFilterFactory" dictionary="pt_PT.dic" affix="pt_PT.aff" ignoreCase="true" />
-	-->
+        <!-- stemming
+        -->
+        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.pt.txt" />
+        <filter class="solr.PortugueseStemFilterFactory" />
+        <!-- too slow
+        <filter class="solr.HunspellStemFilterFactory" dictionary="en_US.dic" affix="en_US.aff" ignoreCase="true" />
+        <filter class="solr.HunspellStemFilterFactory" dictionary="pt_PT.dic" affix="pt_PT.aff" ignoreCase="true" />
+        -->
 
-	<!-- improvised stemming
-	<filter class="solr.EdgeNGramFilterFactory" minGramSize="3" maxGramSize="20" side="front"/>
-	-->
+        <!-- improvised stemming
+        <filter class="solr.EdgeNGramFilterFactory" minGramSize="3" maxGramSize="20" side="front"/>
+        -->
       </analyzer>
     </fieldType>
 
@@ -127,26 +127,24 @@
    <field name="latlng_0_coordinate" type="sdouble" indexed="true" stored="true" multiValued="false"/>
    <field name="latlng_1_coordinate" type="sdouble" indexed="true" stored="true" multiValued="false"/>
 
-   <field name="id" type="string" indexed="true" stored="true" required="true" />
-   <field name="type_s" type="string" indexed="true" stored="false" />
-   <field name="pk_i" type="integer" indexed="true" stored="true"/>
-   <field name="pk_s" type="string" indexed="true" stored="true"/>
-   <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
+   <field name="id" type="string"       indexed="true" stored="true" required="true" />
+   <field name="pk_i" type="integer"    indexed="true" stored="true"/>
+   <field name="pk_s" type="string"     indexed="true" stored="true"/>
+   <field name="text" type="text"       indexed="true" stored="false" multiValued="true"/>
    <field name="spell" type="textSpell" indexed="true" stored="true" multiValued="true"/>
 
-   <dynamicField name="*_i" type="integer" indexed="true" stored="false"/>
-   <dynamicField name="*_t" type="text" indexed="true" stored="true"/>
-   <dynamicField name="*_f" type="float" indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_do" type="double" indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_b" type="boolean" indexed="true" stored="false"/>
-   <dynamicField name="*_d" type="date" indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_s" type="string" indexed="true" stored="true" multiValued="false"/>
-   <dynamicField name="*_ri" type="sint" indexed="true" stored="false"/>
-   <dynamicField name="*_rf" type="sfloat" indexed="true" stored="false"/>
-   <dynamicField name="*_facet" type="string" indexed="true" stored="false"/>
-   <dynamicField name="*_s_mv" type="string" indexed="true" stored="false" multiValued="true"/>
+   <dynamicField name="*_i" type="integer"       indexed="true" stored="false" multiValued="true"/>
+   <dynamicField name="*_t" type="text"          indexed="true" stored="true" multiValued="true"/>
+   <dynamicField name="*_f" type="float"         indexed="true" stored="false" multiValued="false"/>
+   <dynamicField name="*_do" type="double"       indexed="true" stored="false" multiValued="false"/>
+   <dynamicField name="*_b" type="boolean"       indexed="true" stored="false" multiValued="true"/>
+   <dynamicField name="*_s" type="string"        indexed="true" stored="true" multiValued="false"/>
+   <dynamicField name="*_ri" type="sint"         indexed="true" stored="false" multiValued="true"/>
+   <dynamicField name="*_rf" type="sfloat"       indexed="true" stored="false" multiValued="true"/>
+   <dynamicField name="*_facet" type="string"    indexed="true" stored="false" multiValued="true"/>
+   <dynamicField name="*_s_mv" type="string"     indexed="true" stored="false" multiValued="true"/>
    <dynamicField name="*_zh_text" type="text_zh" indexed="true" stored="false" multiValued="true"/>
-   <dynamicField name="*_display" type="text" indexed="false" stored="true" multiValued="true"/>
+   <dynamicField name="*_display" type="text"    indexed="false" stored="true" multiValued="true"/>
 
    <field name="lat" type="sdouble" indexed="true" stored="true"/><!-- must match the latField in solrconfig.xml -->
    <field name="lng" type="sdouble" indexed="true" stored="true"/><!-- must match the lngField in solrconfig.xml -->
