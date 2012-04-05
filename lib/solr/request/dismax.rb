@@ -16,7 +16,7 @@ class Solr::Request::Dismax < Solr::Request::Standard
                                        :alternate_query, :boost_query, :boost_functions])
 
   def initialize(params)
-    super("search")
+    super
   end
   
   def to_hash
