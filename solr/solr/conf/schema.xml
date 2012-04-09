@@ -138,6 +138,7 @@
    <dynamicField name="*_f" type="float"         indexed="true" stored="false" multiValued="false"/>
    <dynamicField name="*_do" type="double"       indexed="true" stored="false" multiValued="false"/>
    <dynamicField name="*_b" type="boolean"       indexed="true" stored="false" multiValued="true"/>
+   <dynamicField name="*_d" type="date"          indexed="true" stored="false" multiValued="false"/>
    <dynamicField name="*_s" type="string"        indexed="true" stored="true" multiValued="false"/>
    <dynamicField name="*_ri" type="sint"         indexed="true" stored="false" multiValued="true"/>
    <dynamicField name="*_rf" type="sfloat"       indexed="true" stored="false" multiValued="true"/>
