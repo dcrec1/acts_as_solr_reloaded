@@ -262,6 +262,7 @@ module ActsAsSolr #:nodoc:
     def process_solr_options(options={}, solr_options={})
       self.configuration = {
         :fields => nil,
+        :format => :objects,
         :additional_fields => nil,
         :dynamic_attributes => false,
         :exclude_fields => [],
@@ -279,6 +280,7 @@ module ActsAsSolr #:nodoc:
         :default_boost => 1.0,
       }
 
+      solr_options ||= {}
       raise "Invalid options: #{(options.keys-configuration.keys).join(',')}" unless (options.keys-configuration.keys).empty?
       raise "Invalid solr options: #{(solr_options.keys-solr_configuration.keys).join(',')}" unless (solr_options.keys-solr_configuration.keys).empty?
 
@@ -300,6 +302,7 @@ module ActsAsSolr #:nodoc:
     end
 
     def after_save_reindex(associations, options = {})
+      extend ActsAsSolr::CommonMethods
       Array(associations).each do |association|
         after_save do |ar|
           if options[:with] == :delayed_job
@@ -365,7 +368,7 @@ module ActsAsSolr #:nodoc:
         column_type = format_column_type(column.type)
         
         case column_type
-          when :string then :text
+          when :string then :string
           when :datetime then :date
           when :time then :date
           else column_type

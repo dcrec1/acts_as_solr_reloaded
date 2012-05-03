@@ -776,7 +776,11 @@
          <str>nameOfCustomComponent2</str>
        </arr>
       -->
-    </requestHandler>
+    <arr name="last-components">
+      <str>spellcheck</str>
+    </arr>
+
+  </requestHandler>
 
   <!-- DisMaxRequestHandler allows easy searching across multiple fields
        for simple user-entered phrases.  It's implementation is now
@@ -1099,24 +1103,22 @@
       -->
     <lst name="spellchecker">
       <str name="name">default</str>
-      <str name="field">name</str>
+      <str name="field">spell</str>
       <str name="spellcheckIndexDir">spellchecker</str>
+      <str name="buildOnCommit">true</str>
+      <str name="buildOnOptimize">true</str>
       <!-- uncomment this to require terms to occur in 1% of the documents in order to be included in the dictionary
       	<float name="thresholdTokenFrequency">.01</float>
       -->
     </lst>
 
     <!-- a spellchecker that uses a different distance measure -->
-    <!--
-       <lst name="spellchecker">
-         <str name="name">jarowinkler</str>
-         <str name="field">spell</str>
-         <str name="distanceMeasure">
-           org.apache.lucene.search.spell.JaroWinklerDistance
-         </str>
-         <str name="spellcheckIndexDir">spellcheckerJaro</str>
-       </lst>
-     -->
+    <lst name="spellchecker">
+      <str name="name">jarowinkler</str>
+      <str name="field">spell</str>
+      <str name="distanceMeasure">org.apache.lucene.search.spell.JaroWinklerDistance</str>
+      <str name="spellcheckIndexDir">spellcheckerJaro</str>
+    </lst>
 
     <!-- a spellchecker that use an alternate comparator 
 
@@ -1135,15 +1137,13 @@
       -->
 
     <!-- A spellchecker that reads the list of words from a file -->
-    <!--
-       <lst name="spellchecker">
-         <str name="classname">solr.FileBasedSpellChecker</str>
-         <str name="name">file</str>
-         <str name="sourceLocation">spellings.txt</str>
-         <str name="characterEncoding">UTF-8</str>
-         <str name="spellcheckIndexDir">spellcheckerFile</str>
-       </lst>
-      -->
+    <lst name="spellchecker">
+      <str name="classname">solr.FileBasedSpellChecker</str>
+      <str name="name">file</str>
+      <str name="sourceLocation">spellings.en.txt</str>
+      <str name="characterEncoding">UTF-8</str>
+      <str name="spellcheckIndexDir">spellcheckerFile</str>
+    </lst>
   </searchComponent>
 
   <!-- A request handler for demonstrating the spellcheck component.  
@@ -1444,6 +1444,7 @@
           <str name="hl.bs.country">US</str>
         </lst>
       </boundaryScanner>
+
     </highlighting>
   </searchComponent>
 

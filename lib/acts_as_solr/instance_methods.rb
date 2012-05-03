@@ -51,7 +51,7 @@ module ActsAsSolr #:nodoc:
         field_type = get_solr_field_type(options[:type])
         solr_name = options[:as] || field_name
         
-        value = self.send("#{field_name}_for_solr")
+        value = self.send("#{field_name}_for_solr") rescue nil
         next if value.nil?
 
         suffix = get_solr_field_type(field_type)
@@ -60,7 +60,7 @@ module ActsAsSolr #:nodoc:
 
         field = Solr::Field.new(:name => "#{solr_name}_#{suffix}", :value => value)
         processed_boost = validate_boost(field_boost)
-        field.boost = processed_boost if processed_boost != solr_configuration[:default_boost]
+        field.boost = processed_boost
         doc << field
       end
       
@@ -81,8 +81,8 @@ module ActsAsSolr #:nodoc:
 
     def add_space(doc)
       if configuration[:spatial] and local
-        doc << Solr::Field.new(:name => "lat", :value => local.latitude)
-        doc << Solr::Field.new(:name => "lng", :value => local.longitude)
+        doc << Solr::Field.new(:name => "lat_f", :value => local.latitude)
+        doc << Solr::Field.new(:name => "lng_f", :value => local.longitude)
       end
     end
     
@@ -96,8 +96,8 @@ module ActsAsSolr #:nodoc:
     def add_dynamic_attributes(doc)
       dynamic_attributes.each do |attribute|
         value = ERB::Util.html_escape(attribute.value)
-        doc << Solr::Field.new(:name => "#{attribute.name}_t", :value => value)
-        doc << Solr::Field.new(:name => "#{attribute.name}_facet", :value => value)
+        doc << Solr::Field.new(:name => "#{attribute.name.downcase}_t", :value => value)
+        doc << Solr::Field.new(:name => "#{attribute.name.downcase}_facet", :value => value)
       end if configuration[:dynamic_attributes]
     end
 
@@ -117,7 +117,7 @@ module ActsAsSolr #:nodoc:
               Array(data).each do |value|
                 field = Solr::Field.new(:name => "#{field_name}_#{suffix}", :value => value)
                 processed_boost = validate_boost(field_boost)
-                field.boost = processed_boost if processed_boost != solr_configuration[:default_boost]
+                field.boost = processed_boost
                 doc << field
               end
             end

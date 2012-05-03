@@ -30,11 +30,14 @@ module ActsAsSolr #:nodoc:
     end
 
     def solr_batch_add(objects)
-      solr_add Array(objects).map{ |a| a.to_solr_doc }
+      solr_add objects.map{ |a| a.to_solr_doc }
+      solr_commit if defined?(configuration) and configuration[:auto_commit]
     end
 
     def solr_batch_add_association(ar, association)
-      solr_batch_add ar.send(association)
+      result = ar.send(association)
+      result = [result] unless result.is_a?(Array)
+      solr_batch_add result
     end
     
     # Sends an add command to Solr

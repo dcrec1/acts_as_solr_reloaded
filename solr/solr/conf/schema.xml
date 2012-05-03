@@ -31,6 +31,8 @@
 
 <schema name="acts_as_solr" version="0.9">
   <types>
+    <fieldType name="id" class="solr.StrField" sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="facet" class="solr.StrField" sortMissingLast="true" omitNorms="false"/>
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="false"/>
     <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="false"/>
     <fieldType name="integer" class="solr.IntField" omitNorms="false"/>
@@ -62,6 +64,7 @@
         -->
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.pt.txt" />
         <filter class="solr.PortugueseStemFilterFactory" />
+        <filter class="solr.PorterStemFilterFactory" />
         <!-- too slow
         <filter class="solr.HunspellStemFilterFactory" dictionary="en_US.dic" affix="en_US.aff" ignoreCase="true" />
         <filter class="solr.HunspellStemFilterFactory" dictionary="pt_PT.dic" affix="pt_PT.aff" ignoreCase="true" />
@@ -84,6 +87,7 @@
         -->
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.pt.txt" />
         <filter class="solr.PortugueseStemFilterFactory" />
+        <filter class="solr.PorterStemFilterFactory" />
         <!-- too slow
         <filter class="solr.HunspellStemFilterFactory" dictionary="en_US.dic" affix="en_US.aff" ignoreCase="true" />
         <filter class="solr.HunspellStemFilterFactory" dictionary="pt_PT.dic" affix="pt_PT.aff" ignoreCase="true" />
@@ -127,22 +131,26 @@
    <field name="latlng_0_coordinate" type="sdouble" indexed="true" stored="true" multiValued="false"/>
    <field name="latlng_1_coordinate" type="sdouble" indexed="true" stored="true" multiValued="false"/>
 
-   <field name="id" type="string"       indexed="true" stored="true" required="true" />
-   <field name="pk_i" type="integer"    indexed="true" stored="true"/>
-   <field name="pk_s" type="string"     indexed="true" stored="true"/>
+   <field name="id" type="id"         indexed="true" stored="true" multiValued="true" required="true"/>
+   <field name="_id_s" type="id"      indexed="true" stored="true" multiValued="true"/>
+   <field name="pk_i" type="integer"  indexed="true" stored="true" multiValued="true"/>
+   <field name="pk_s" type="id"       indexed="true" stored="true" multiValued="true"/>
+   <field name="type_s" type="string" indexed="true" stored="true" multiValued="true" required="true"/>
+
+   <dynamicField name="*_t" type="text"      indexed="true" stored="true"  multiValued="true"/>
+   <dynamicField name="*_s" type="text"      indexed="true" stored="true"  multiValued="false"/>
+   <dynamicField name="*_i" type="integer"   indexed="true" stored="false" multiValued="true"/>
+   <dynamicField name="*_f" type="float"     indexed="true" stored="false" multiValued="false"/>
+   <dynamicField name="*_do" type="double"   indexed="true" stored="false" multiValued="false"/>
+   <dynamicField name="*_b" type="boolean"   indexed="true" stored="false" multiValued="true"/>
+   <dynamicField name="*_d" type="date"      indexed="true" stored="false" multiValued="false"/>
+   <dynamicField name="*_ri" type="sint"     indexed="true" stored="false" multiValued="false"/>
+   <dynamicField name="*_rf" type="sfloat"   indexed="true" stored="false" multiValued="false"/>
+   <dynamicField name="*_facet" type="facet" indexed="true" stored="false" multiValued="true"/>
+
    <field name="text" type="text"       indexed="true" stored="false" multiValued="true"/>
    <field name="spell" type="textSpell" indexed="true" stored="true" multiValued="true"/>
 
-   <dynamicField name="*_i" type="integer"       indexed="true" stored="false" multiValued="true"/>
-   <dynamicField name="*_t" type="text"          indexed="true" stored="true" multiValued="true"/>
-   <dynamicField name="*_f" type="float"         indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_do" type="double"       indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_b" type="boolean"       indexed="true" stored="false" multiValued="true"/>
-   <dynamicField name="*_d" type="date"          indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_s" type="string"        indexed="true" stored="true" multiValued="false"/>
-   <dynamicField name="*_ri" type="sint"         indexed="true" stored="false" multiValued="true"/>
-   <dynamicField name="*_rf" type="sfloat"       indexed="true" stored="false" multiValued="true"/>
-   <dynamicField name="*_facet" type="string"    indexed="true" stored="false" multiValued="true"/>
    <dynamicField name="*_s_mv" type="string"     indexed="true" stored="false" multiValued="true"/>
    <dynamicField name="*_zh_text" type="text_zh" indexed="true" stored="false" multiValued="true"/>
    <dynamicField name="*_display" type="text"    indexed="false" stored="true" multiValued="true"/>
@@ -160,11 +168,12 @@
  <copyField source="lng_f" dest="latlng_1_coordinate"/>
 
  <copyField source="*_s" dest="text"/>
- <copyField source="*_s" dest="spell"/>
  <copyField source="*_t" dest="text"/>
- <copyField source="*_t" dest="spell"/>
  <copyField source="*_facet" dest="text"/>
+ <copyField source="*_s" dest="spell"/>
+ <copyField source="*_t" dest="spell"/>
  <copyField source="*_facet" dest="spell"/>
+
  <solrQueryParser defaultOperator="AND"/>
 
 </schema>

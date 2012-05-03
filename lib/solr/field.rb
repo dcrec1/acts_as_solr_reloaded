@@ -18,7 +18,7 @@ class Solr::Field
 
   # Accepts an optional <tt>:boost</tt> parameter, used to boost the relevance of a particular field.
   def initialize(params)
-    @boost = params[:boost] == 1.0 ? nil : params[:boost]
+    boost = params[:boost]
     @name = params[:name].to_s
     @value = params[:value]
     # Convert any Time values into UTC/XML schema format (which Solr requires).
@@ -28,6 +28,10 @@ class Solr::Field
   def value_to_jsonhash
     @boost.nil? ? @value : {'boost' => @boost, 'value' => @value}
   end 
+
+  def boost=(value)
+    @boost = value == 1.0 ? nil : value
+  end
 
   def to_xml
     e = Solr::XML::Element.new 'field'

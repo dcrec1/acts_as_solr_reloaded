@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require File.expand_path(File.dirname(__FILE__) + '/json_update')
+
 class Solr::Request::AddDocument < Solr::Request::JsonUpdate
 
   # create the request, optionally passing in a Solr::Document

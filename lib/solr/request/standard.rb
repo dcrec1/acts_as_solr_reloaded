@@ -64,7 +64,7 @@ class Solr::Request::Standard < Solr::Request::Select
     
     hash[:sfield] = 'latlng'
     hash[:d] = @params[:radius]
-    hash[:pt] = "#{@params[:latitude]}, #{@params[:longitude]}"
+    hash[:pt] = "#{@params[:latitude]}, #{@params[:longitude]}" if @params[:latitude] and @params[:longitude]
     
     # facet parameter processing
     if @params[:facets]

@@ -29,7 +29,7 @@ module ActsAsSolr #:nodoc:
              "The field types are automatically traced back when you specify a field type in your model."
       end
       if options[:sort_by]
-        plog "The option :sort_by is deprecated, use :order instead!"
+        plog "The option :sort_by is deprecated, use :sort instead!"
         options[:sort] ||= options[:sort_by]
       end
       if options[:start]

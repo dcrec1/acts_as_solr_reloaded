@@ -1,4 +1,5 @@
-require File.expand_path("#{File.dirname(__FILE__)}/test_helper")
+require File.expand_path("#{File.dirname(__FILE__)}/../test_helper")
+require File.expand_path("#{File.dirname(__FILE__)}/parser_instance")
 
 class ParserMethodsTest < Test::Unit::TestCase
 
@@ -16,6 +17,8 @@ class ParserMethodsTest < Test::Unit::TestCase
         @results.stubs(:highlighting).returns []
         @results.stubs(:data).returns({"responseHeader" => {"QTime" => "10.2"}})
         @results.stubs(:header).returns({})
+        @parser.stubs(:merge_conditions).returns({:id => []})
+        @parser.stubs(:all).returns([])
       end
 
       should "return a SearchResults object" do
@@ -36,11 +39,13 @@ class ParserMethodsTest < Test::Unit::TestCase
           @parser.configuration = {:format => :objects}
           @parser.solr_configuration = {:primary_key_field => :pk_id}
           @results.stubs(:hits).returns [{"pk_id" => 1}, {"pk_id" => 2}]
+          @ids = @results.hits.map{ |h| h.first.last }
           @parser.stubs(:reorder)
+          @parser.expects(:merge_conditions).returns({:id => @ids})
         end
 
         should "query with the record ids" do
-          @parser.expects(:find).with([1, 2], {}).returns [1, 2]
+          @parser.expects(:all).with(:conditions => {:id => @ids}).returns @ids
           @parser.parse_results(@results)
         end
 
@@ -50,8 +55,8 @@ class ParserMethodsTest < Test::Unit::TestCase
         end
 
         should "add :include if :include was specified" do
-          @parser.expects(:find).with([1, 2], :include => [:author]).returns [1, 2]
-          @parser.parse_results(@results, :include => [:author])
+          @parser.expects(:all).with(:conditions => {:id => @ids}, :include => [:author]).returns @ids
+          @parser.parse_results(@results, :sql_options => {:include => [:author]})
         end
       end
 
@@ -129,8 +134,8 @@ class ParserMethodsTest < Test::Unit::TestCase
   end
 
   context "when reordering results" do
-    should "raise an error if arguments don't have the same number of elements" do
-      assert_raise(RuntimeError) {@parser.reorder([], [1])}
+    should "don't raise an error if arguments don't have the same number of elements" do
+      assert_nothing_raised {@parser.reorder([], [1])}
     end
 
     should "reorder the results to match the order of the documents returned by solr" do
@@ -151,7 +156,22 @@ class ParserMethodsTest < Test::Unit::TestCase
       ActsAsSolr::Post.stubs(:execute)
       @parser.stubs(:solr_type_condition).returns "(type:ParserMethodsTest)"
       @parser.solr_configuration = {:primary_key_field => "id"}
-      @parser.configuration = {:solr_fields => nil}
+      @parser.configuration = {:solr_fields => {:title => {:type => :string}, :tag => {:type => :text}, :description => {:type => :text}}}
+    end
+
+    should "not escape fields followed filter and boost chars" do
+      ActsAsSolr::Post.expects(:execute).with {|request, core|
+        request.to_hash[:q] == 'tag_t:blah nonfield\\:blah'
+      }
+      @parser.parse_query "tag:blah nonfield:blah"
+    end
+
+
+    should "always use search as query type" do
+      ActsAsSolr::Post.expects(:execute).with {|request, core|
+        request.to_hash[:qt] == 'search'
+      }
+      @parser.parse_query "foo"
     end
 
     should "set the limit and offset" do
@@ -165,23 +185,16 @@ class ParserMethodsTest < Test::Unit::TestCase
     should "set the relevancy of the specified fields and non-filtered terms" do
       ActsAsSolr::Post.expects(:execute).with {|request, core|
         q = request.to_hash[:q]
-        q.starts_with?("(aeroplane brasil continent_t:south OR tag_t:(aeroplane brasil)^5 OR description_t:(aeroplane brasil)^3)") or q.starts_with?("(aeroplane brasil continent_t:south OR description_t:(aeroplane brasil)^3 OR tag_t:(aeroplane brasil)^5)")
+        q.starts_with?("aeroplane brasil OR tag_t:(aeroplane brasil)^5 OR description_t:(aeroplane brasil)^3") or
+        q.starts_with?("aeroplane brasil OR description_t:(aeroplane brasil)^3 OR tag_t:(aeroplane brasil)^5")
       }
-      @parser.parse_query "aeroplane brasil continent:south", :relevance => {:tag => 5, :description => 3}
-    end
-
-    should "set the relevance unless no query specified" do
-      expected = "(continent_t:south)"
-      ActsAsSolr::Post.expects(:execute).with {|request, core|
-        request.to_hash[:q].starts_with? expected
-      }
-      @parser.parse_query "continent:south", :relevance => {:tag => 5, :description => 3}
+      @parser.parse_query "aeroplane brasil", :filter_queries => ['continent:south'], :relevance => {:tag => 5, :description => 3}
     end
 
     should "set the relevance with simple queries" do
       ActsAsSolr::Post.expects(:execute).with {|request, core|
         q = request.to_hash[:q]
-        q.starts_with?("(car OR tag_t:(car)^5 OR description_t:(car)^3)") or q.starts_with?("(car OR description_t:(car)^3 OR tag_t:(car)^5)")
+        q.starts_with?("car OR tag_t:(car)^5 OR description_t:(car)^3") or q.starts_with?("car OR description_t:(car)^3 OR tag_t:(car)^5")
       }
       @parser.parse_query "car", :relevance => {:tag => 5, :description => 3}
     end
@@ -202,24 +215,24 @@ class ParserMethodsTest < Test::Unit::TestCase
 
     should "add the type" do
       ActsAsSolr::Post.expects(:execute).with {|request, core|
-        request.to_hash[:q].include?("(type:ParserMethodsTest)")
+        request.to_hash[:fq].include?("(type:ParserMethodsTest)")
       }
       @parser.parse_query "foo"
     end
 
-    should "append the field types for the specified fields" do
+    should "not append field types for not specified fields" do
       ActsAsSolr::Post.expects(:execute).with {|request, core|
-        request.to_hash[:q].include?("(username_t:Chunky)")
+        request.to_hash[:fq].include?("username:Chunky")
       }
-      @parser.parse_query "username:Chunky"
+      @parser.parse_query '', :filter_queries => ["username:Chunky"]
   end
 
   should "replace the field types" do
-    @parser.expects(:replace_types).returns(["active_i:1"])
+    @parser.configuration = {:solr_fields => {:active => {:type => :integer}}}
     ActsAsSolr::Post.expects(:execute).with {|request, core|
-      request.to_hash[:q].include?("active_i:1")
+      request.to_hash[:fq].include?("active_i:1")
     }
-    @parser.parse_query "active:1"
+    @parser.parse_query "", :filter_queries => ['active:1']
   end
 
   should "add score and primary key to field list" do
@@ -232,7 +245,7 @@ class ParserMethodsTest < Test::Unit::TestCase
   should "add highlight options" do
     ActsAsSolr::Post.expects(:execute).with {|request, core|
       request.to_hash[:hl] == "true"
-      request.to_hash["hl.fl"] == "title_t"
+      request.to_hash["hl.fl"] == "title_s"
     }
     @parser.parse_query "car", :highlight => {:fields => "title"}
   end
@@ -259,30 +272,16 @@ class ParserMethodsTest < Test::Unit::TestCase
   end
 
   context "with the around option" do
-    should "set the qt as geo" do
-      ActsAsSolr::Post.expects(:execute).with {|request, core|
-        request.to_hash[:qt] == ('geo')
-      }
-      @parser.parse_query "foo" , :latitude => '-39.36', :longitude => '77.4027', :radius => 1
-    end
-
     should "set the radius" do
       ActsAsSolr::Post.expects(:execute).with {|request, core|
-        request.to_hash[:radius] == 12
+        request.to_hash[:d] == 12
       }
       @parser.parse_query "foo" , :latitude => '-39.36', :longitude => '77.4027', :radius => 12
     end
 
-    should "set the latitude" do
+    should "set the latitude and the longitude" do
       ActsAsSolr::Post.expects(:execute).with {|request, core|
-        request.to_hash[:lat] == '-39.36'
-      }
-      @parser.parse_query "foo" , :latitude => '-39.36', :longitude => '77.4027', :radius => 12
-    end
-
-    should "set the longitude" do
-      ActsAsSolr::Post.expects(:execute).with {|request, core|
-        request.to_hash[:long] == '77.4027'
+        request.to_hash[:pt] == "-39.36, 77.4027"
       }
       @parser.parse_query "foo" , :latitude => '-39.36', :longitude => '77.4027', :radius => 12
     end
@@ -290,10 +289,11 @@ class ParserMethodsTest < Test::Unit::TestCase
 
   context "with the order option" do
     should "add the order criteria to the query" do
+      @parser.configuration = {:solr_fields => {:active => {:type => :text}}}
       ActsAsSolr::Post.expects(:execute).with {|request, core|
         request.to_hash[:sort].include?("active_t desc")
       }
-      @parser.parse_query "active:1", :order => "active desc"
+      @parser.parse_query "active:1", :sort => "active desc"
     end
   end
 
@@ -308,16 +308,16 @@ context "When setting the field types" do
   end
 
   should "replace the _t suffix with the real type" do
-    assert_equal ["name_s:Chunky AND age_i:21"], @parser.replace_types(["name_t:Chunky AND age_t:21"])
+    assert_equal ["name_s:Chunky AND age_i:21"], @parser.replace_types(["name:Chunky AND age:21"])
   end
 
   context "with a suffix" do
     should "not include the colon when false" do
-      assert_equal ["name_s"], @parser.replace_types(["name_t"], false)
+      assert_equal ["name_s"], @parser.replace_types(["name"], '')
     end
 
     should "include the colon by default" do
-      assert_equal ["name_s:Chunky"], @parser.replace_types(["name_t:Chunky"])
+      assert_equal ["name_s:Chunky"], @parser.replace_types(["name:Chunky"])
     end
   end
 end

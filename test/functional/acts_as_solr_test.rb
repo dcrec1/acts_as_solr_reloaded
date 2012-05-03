@@ -7,14 +7,6 @@ class ActsAsSolrTest < Test::Unit::TestCase
   
   Document.destroy_all
 
-  DynamicAttribute.delete_all
-  Advertise.first.dynamic_attributes.create! :name => 'Description', :value => 'A very cool bike'
-  Advertise.first.dynamic_attributes.create! :name => 'Price', :value => '1000'
-
-  Local.delete_all
-  Local.create! :localizable => Advertise.find(1), :longitude => '-77.4027', :latitude => '39.36'
-  Local.create! :localizable => Advertise.find(2), :longitude => '77.4027',  :latitude => '-38.36'
-
   # Inserting new data into Solr and making sure it's getting indexed
   def test_insert_new_data
     assert_equal 2, Book.count_by_solr('ruby OR splinter OR bob')
@@ -102,15 +94,27 @@ class ActsAsSolrTest < Test::Unit::TestCase
   # The method current_time above gets indexed as being part of the
   # Movie model and it's available for search as well
   def test_find_with_dynamic_fields
+    DynamicAttribute.delete_all
+    Movie.first.dynamic_attributes.create! :name => 'description', :value => 'A very cool bike'
+
     date = Time.now.strftime('%b %d %Y')
-    ["dynamite AND #{date}", "description:goofy AND #{date}", "goofy napoleon #{date}",
-      "goofiness #{date}"].each do |term|
-      records = Movie.find_by_solr term
+    ["dynamite AND #{date}", "description_t:bike AND #{date}", "goofy napoleon #{date}", "goofy #{date}"].each do |term|
+      records = Movie.find_by_solr '', :alternate_query => term
       assert_equal 1, records.total
       assert_equal ({"id" => 1, "name" => "Napoleon Dynamite",
                      "description" => "Cool movie about a goofy guy"}), records.docs.first.attributes
     end
   end
+
+  def test_dynamic_attributes_are_faceted
+    DynamicAttribute.delete_all
+    Movie.first.dynamic_attributes.create! :name => 'description', :value => 'A very cool bike'
+
+    records = Movie.find_by_solr '', :alternate_query => "description_t:bike", :facets => { :fields => [:description] }
+    expected = { "A very cool bike" => 1 }
+    assert_equal expected, Hash[records.facets['facet_fields']['description_facet']]
+  end
+
 
   # Testing basic solr search that returns just the ids instead of the objects:
   #   Model.find_id_by_solr 'term'
@@ -140,11 +144,10 @@ class ActsAsSolrTest < Test::Unit::TestCase
   #   Model.find_id_by_solr 'term'
   # Note that you're able to mix free-search with fields and boolean operators
   def test_find_id_by_solr_ruby_or_splinter
-    ['ruby OR splinter', 'ruby OR author:tom', 'name:cell OR author:peter',
-      'dummy OR cell'].each do |term|
+    ['ruby OR splinter', 'ruby OR author:tom', 'name:cell OR author:peter', 'dummy OR cell'].each do |term|
       records = Book.find_id_by_solr term
       assert_equal 2, records.docs.size
-      assert_equal ['1','2'], records.docs
+      assert_equivalent ['1','2'], records.docs
     end
   end
 
@@ -152,8 +155,7 @@ class ActsAsSolrTest < Test::Unit::TestCase
   #   Model.find_count_by_solr 'term'
   # Note that you're able to mix free-search with fields and boolean operators
   def test_count_by_solr
-    ['ruby', 'dummy', 'name:ruby', 'name:dummy', 'name:ruby AND author:peter',
-      'author:peter AND ruby'].each do |term|
+    ['ruby', 'dummy', 'name:ruby', 'name:dummy', 'name:ruby AND author:peter', 'author:peter AND ruby'].each do |term|
       assert_equal 1, Book.count_by_solr(term), "there should only be 1 result for search: #{term}"
     end
   end
@@ -221,13 +223,13 @@ class ActsAsSolrTest < Test::Unit::TestCase
     assert_equal 'Splinter Cell', records.docs.last.name
   end
 
-  # Testing solr search with optional :order argument
-  def _test_with_order_option
-    records = Movie.find_by_solr 'office^5 OR goofiness'
+  # Testing solr search with optional :sort argument
+  def test_with_order_option
+    records = Movie.find_by_solr 'office^5 OR goofy'
     assert_equal 'Hypnotized dude loves fishing but not working', records.docs.first.description
     assert_equal 'Cool movie about a goofy guy', records.docs.last.description
 
-    records = Movie.find_by_solr 'office^5 OR goofiness', :order => 'description asc'
+    records = Movie.find_by_solr 'office^5 OR goofy', :sort => 'description asc'
     assert_equal 'Cool movie about a goofy guy', records.docs.first.description
     assert_equal 'Hypnotized dude loves fishing but not working', records.docs.last.description
   end
@@ -235,13 +237,13 @@ class ActsAsSolrTest < Test::Unit::TestCase
   # Testing search with omitted :field_types should
   # return the same result set as if when we use it
   def test_omit_field_types_in_search
-    records  = Electronic.find_by_solr "price:[200 TO 599.99]"
-    assert_match(/599/, records.docs.first.price)
-    assert_match(/319/, records.docs.last.price)
+    records  = Electronic.find_by_solr '', :filter_queries => ["price:[200 TO 599.99]"]
+    assert_match /599/, records.docs.last.price
+    assert_match /319/, records.docs.first.price
 
-    records  = Electronic.find_by_solr "price:[200 TO 599.99]", :order => 'price asc'
-    assert_match(/319/, records.docs.first.price)
-    assert_match(/599/, records.docs.last.price)
+    records  = Electronic.find_by_solr '', :filter_queries => ["price:[200 TO 599.99]"], :sort => 'price asc'
+    assert_match /319/, records.docs.first.price
+    assert_match /599/, records.docs.last.price
 
   end
 
@@ -287,6 +289,12 @@ class ActsAsSolrTest < Test::Unit::TestCase
 
     assert_equal original_count + 1, Author.count
     assert_equal 0, Author.count_by_solr('raymond chandler')
+  end
+
+  def test_basic_search_on_model_with_string_id_field
+    records = Posting.find_by_solr 'first'
+    assert_equal 1, records.total
+    assert_equal 'ABC-123', records.docs.first.guid
   end
 
   # Testing models that use a different key as the primary key
@@ -379,13 +387,11 @@ class ActsAsSolrTest < Test::Unit::TestCase
   end
 
   def test_operator_search_option
-    assert_nothing_raised {
-      books = Movie.find_by_solr "office napoleon", :operator => :or
-      assert_equal 2, books.total
+    books = Movie.find_by_solr "office napoleon", :operator => :or
+    assert_equal 2, books.total
 
-      books = Movie.find_by_solr "office napoleon", :operator => :and
-      assert_equal 0, books.total
-    }
+    books = Movie.find_by_solr "office napoleon", :operator => :and
+    assert_equal 0, books.total
 
     assert_raise RuntimeError do
       Movie.find_by_solr "office napoleon", :operator => :bad
@@ -395,18 +401,17 @@ class ActsAsSolrTest < Test::Unit::TestCase
   # Making sure find_by_solr with scores actually return the scores
   # for each individual record and orders them accordingly
   def test_find_by_solr_order_by_score
-    books = Book.find_by_solr 'ruby^10 OR splinter', {:scores => true, :order => 'score asc' }
+    books = Book.find_by_solr 'ruby^10 OR splinter', :scores => true, :sort => 'score asc'
     assert (books.docs.collect(&:solr_score).compact.size == books.docs.size), "Each book should have a score"
-    assert (books.docs.last.solr_score >= 0.3 && books.docs.last.solr_score <= 0.6)
+    assert (books.docs.first.solr_score < books.docs.last.solr_score)
 
-    books = Book.find_by_solr 'ruby^10 OR splinter', {:scores => true, :order => 'score desc' }
-    assert (books.docs.first.solr_score >= 0.3 && books.docs.first.solr_score <= 0.6)
+    books = Book.find_by_solr 'ruby^10 OR splinter', :scores => true, :sort => 'score desc'
     assert (books.docs.last.solr_score < books.docs.first.solr_score)
   end
 
   # Search based on fields with the :date format
   def test_indexed_date_field_format
-    movies = Movie.find_by_solr 'time_on_xml:[NOW-1DAY TO NOW]'
+    movies = Movie.find_by_solr '', :filter_queries => 'time_on_xml:[NOW-1DAY TO NOW]'
     assert_equal 2, movies.total
   end
 
@@ -422,17 +427,6 @@ class ActsAsSolrTest < Test::Unit::TestCase
     assert_equal 0, Gadget.find_id_by_solr('flipvideo').total
   end
 
-  def test_should_find_filtering_a_dynamic_attribute
-    records = Advertise.find_by_solr "description:bike"
-    assert_equal 1, records.total
-  end
-
-  def test_dynamic_attributes_are_faceted
-    records = Advertise.find_by_solr "Description:bike", :facets => { :fields => [:Description] }
-    expected = { "A very cool bike" => 1 }
-    assert_equal expected, records.facets['facet_fields']['Description_facet']
-  end
-
   def test_search_is_an_alias_for_find_by_solr
     assert_equal Advertise.find_by_solr("bike").docs, Advertise.search("bike").docs
   end
@@ -443,17 +437,12 @@ class ActsAsSolrTest < Test::Unit::TestCase
   end
 
   def test_records_are_found_in_a_radius
-    records = Advertise.search "bike", :latitude => '39.36', :longitude => '-77.4027', :radius => 1
+    records = Advertise.search "car", :latitude => '39.36', :longitude => '-77.4027', :radius => 1
     assert_equal 1, records.total
   end
 
-  def test_records_are_found_with_highlight
-    records = Book.find_by_solr "ruby", :highlight => { :fields => "name" }
-    assert_equal 1, records.total
-  end
-
-  def test_records_wiht_highlights_are_returned_properly
-    records = Book.find_by_solr "ruby", :highlight => { :fields => "name" }
+  def test_records_with_highlights_are_returned_properly
+    records = Book.find_by_solr "Ruby", :highlight => { :fields => "name" }
     expected = {"name"=>["<em>Ruby</em> for Dummies"]}
     assert_equal expected, records.highlights.values.first
   end
@@ -464,23 +453,25 @@ class ActsAsSolrTest < Test::Unit::TestCase
 
   def test_mongo_mappers_documents_are_found
     Document.new(:name => "mapper").save
-    assert_equal "mapper", Document.search("mapper").docs.first.name
+    records = Document.search("mapper").docs
+    assert_equal 1, records.count
+    assert_equal "mapper", records.first.name
   end
 
   def test_total_pages_is_returned_when_limit_specified
-    assert_equal 2, Posting.search("test", :limit => 1).total_pages
+    assert_equal 2, Posting.search("testing", :limit => 1).total_pages
   end
 
   def test_total_pages_is_returned_when_limit_not_specified
-    assert_equal 1, Posting.search("test").total_pages
+    assert_equal 1, Posting.search("testing").total_pages
   end
 
   def test_current_page_is_returned
-    assert_equal 2, Posting.search("test", :limit => 1, :offset => 1).current_page
+    assert_equal 2, Posting.search("testing", :limit => 1, :offset => 1).current_page
   end
 
   def test_current_page_1_is_returned
-    assert_equal 1, Posting.search("test").current_page
+    assert_equal 1, Posting.search("testing").current_page
   end
 
   def test_current_page_1_is_returned_when_no_records_found
@@ -488,10 +479,10 @@ class ActsAsSolrTest < Test::Unit::TestCase
   end
 
   def test_page_parameter_is_accepted
-    assert_equal 2, Posting.search("test", :limit => 1, :page => 2).current_page
+    assert_equal 2, Posting.search("testing", :limit => 1, :page => 2).current_page
   end
 
   def test_per_page_parameter_is_accepted
-    assert_equal 1, Posting.search("test", :per_page => 1).per_page
+    assert_equal 1, Posting.search("testing", :per_page => 1).per_page
   end
 end

@@ -2,6 +2,8 @@ require 'rubygems'
 require 'test/unit'
 require 'active_record'
 require 'active_record/fixtures'
+require 'shoulda'
+require 'mocha'
 
 require 'ruby-debug'
 
@@ -12,15 +14,24 @@ end
 
 require 'mongo_mapper'
 
+class Rails
+  def self.root
+    RAILS_ROOT
+  end
+
+  def self.env
+    RAILS_ENV
+  end
+end
+
 MongoMapper.database = "acts_as_solr_reloaded-test"
 
 RAILS_ROOT = File.dirname(__FILE__) unless defined? RAILS_ROOT
 RAILS_ENV  = 'test' unless defined? RAILS_ENV
 ENV["RAILS_ENV"] = "test"
-ENV["ACTS_AS_SOLR_TEST"] = "true"
 
+require File.expand_path(File.dirname(__FILE__) + '/../config/solr_environment')
 require File.expand_path(File.dirname(__FILE__) + '/../lib/acts_as_solr')
-require File.expand_path(File.dirname(__FILE__) + '/../config/solr_environment.rb')
 
 # Load Models
 models_dir = File.join(File.dirname( __FILE__ ), 'models')
@@ -57,14 +68,17 @@ class Test::Unit::TestCase
   def self.clear_from_solr(table_name)
     ActsAsSolr::Post.execute(Solr::Request::Delete.new(:query => "type_s:#{table_name.to_s.capitalize.singularize}"))
   end
-end
 
-class Rails
-  def self.root
-    RAILS_ROOT
+  def assert_equivalent(enum1, enum2)
+    assert( ((enum1 - enum2) == []) && ((enum2 - enum1) == []), "<#{enum1.inspect}> expected to be equivalent to <#{enum2.inspect}>")
   end
 
-  def self.env
-    RAILS_ENV
+  def assert_includes(array, element)
+    assert(array.include?(element), "<#{array.inspect}> expected to include <#{element.inspect}>")
   end
+
+  def assert_not_includes(array, element)
+    assert(!array.include?(element), "<#{array.inspect}> expected to NOT include <#{element.inspect}>")
+  end
+
 end

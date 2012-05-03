@@ -1,4 +1,4 @@
-require File.expand_path("#{File.dirname(__FILE__)}/test_helper")
+require File.expand_path("#{File.dirname(__FILE__)}/../test_helper")
 
 class ActsMethodsTest < Test::Unit::TestCase
   class Model
@@ -55,6 +55,21 @@ class ActsMethodsTest < Test::Unit::TestCase
     acts_as_solr
   end
 
+  should "enable auto_commit in all environments except production" do
+    Taggable.stubs(:after_save)
+    Taggable.stubs(:after_destroy)
+    instance = Taggable.new
+    instance.stubs(:attributes).returns({})
+    Taggable.stubs(:new).returns(instance)
+
+    Rails.stubs(:env).returns('test')
+    Taggable.acts_as_solr
+    assert Taggable.configuration[:auto_commit] == true
+    Rails.stubs(:env).returns('production')
+    Taggable.acts_as_solr
+    assert Taggable.configuration[:auto_commit] == false
+  end
+
   should "define the model as taggable if taggable is true" do
     assert Taggable.taggable?
   end
@@ -63,12 +78,12 @@ class ActsMethodsTest < Test::Unit::TestCase
     assert !NotTaggable.taggable?
   end
   
-  should "define the type of a MongoMapper document id as text" do
-    assert_equal :text, Mapper.configuration[:solr_fields][:_id][:type]
+  should "define the type of a MongoMapper document id as string" do
+    assert_equal :string, Mapper.configuration[:solr_fields][:_id][:type]
   end
   
-  should "recognize the type String of a MongoMapper key as text" do
-    assert_equal :text, Mapper.configuration[:solr_fields][:value1][:type]
+  should "recognize the type String of a MongoMapper key as string" do
+    assert_equal :string, Mapper.configuration[:solr_fields][:value1][:type]
   end
 
   context "when getting field values" do

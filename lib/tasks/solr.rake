@@ -6,9 +6,12 @@ namespace :solr do
   SOLR_DIR = "apache-solr-#{SOLR_VERSION}" 
   SOLR_URL = "#{APACHE_MIRROR}/lucene/solr/#{SOLR_VERSION}/#{SOLR_FILENAME}" 
 
+  # change path if it is on testing environment
+  PLUGIN_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../..")
+
   desc "Download and install Solr+Jetty #{SOLR_VERSION}."
   task :download do
-    if File.exists?(Rails.root + 'vendor/plugins/acts_as_solr_reloaded/solr/start.jar')
+    if File.exists?("#{PLUGIN_ROOT}/solr/start.jar")
       puts 'Solr already downloaded.'
     else
       Dir.chdir '/tmp' do
@@ -17,16 +20,16 @@ namespace :solr do
           sh "tar xzf apache-solr-#{SOLR_VERSION}.tgz"
         end
         cd "apache-solr-#{SOLR_VERSION}/example"
-        cp_r ['../LICENSE.txt', '../NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'], Rails.root + 'vendor/plugins/acts_as_solr_reloaded/solr', :verbose => true
+        cp_r ['../LICENSE.txt', '../NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'], "#{PLUGIN_ROOT}/solr", :verbose => true
         cd 'solr'
-        cp_r ['README.txt', 'bin', 'solr.xml'], Rails.root + 'vendor/plugins/acts_as_solr_reloaded/solr/solr', :verbose => true
+        cp_r ['README.txt', 'bin', 'solr.xml'], "#{PLUGIN_ROOT}/solr/solr", :verbose => true
       end
     end
   end
 
   desc 'Remove Solr instalation from the tree.'
   task :remove do
-    solr_root = Rails.root + 'vendor/plugins/acts_as_solr_reloaded/solr/'
+    solr_root = "#{PLUGIN_ROOT}/solr/"
     rm_r ['README.txt', 'bin', 'solr.xml'].map{ |i| File.join(solr_root, 'solr', i) }, :verbose => true, :force => true
     rm_r ['LICENSE.txt', 'NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'].map{ |i| File.join(solr_root, i) }, :verbose => true, :force => true
   end
@@ -36,8 +39,9 @@ namespace :solr do
   end
 
   desc 'Starts Solr. Options accepted: RAILS_ENV=your_env, PORT=XX. Defaults to development if none.'
-  task :start => [:download, :environment] do
-    require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
+  task :start => [:download] do
+    require File.expand_path(File.dirname(__FILE__) + '/../../config/solr_environment')
+
     FileUtils.mkdir_p(SOLR_LOGS_PATH)
     FileUtils.mkdir_p(SOLR_DATA_PATH)
     FileUtils.mkdir_p(SOLR_PIDS_PATH)
@@ -73,8 +77,9 @@ namespace :solr do
   end
   
   desc 'Stops Solr. Specify the environment by using: RAILS_ENV=your_env. Defaults to development if none.'
-  task :stop => :environment do
+  task :stop do
     require File.expand_path("#{File.dirname(__FILE__)}/../../config/solr_environment")
+
     if File.exists?(SOLR_PID_FILE)
       killed = false
       File.open(SOLR_PID_FILE, "r") do |f| 
@@ -95,7 +100,7 @@ namespace :solr do
   end
 
   desc 'Restart Solr. Specify the environment by using: RAILS_ENV=your_env. Defaults to development if none.'
-  task :restart => :environment do
+  task :restart do
     Rake::Task["solr:stop"].invoke 
     Rake::Task["solr:start"].invoke 
   end
@@ -129,7 +134,7 @@ namespace :solr do
 
     logger = ActiveRecord::Base.logger = Logger.new(STDOUT)
     logger.level = ActiveSupport::BufferedLogger::INFO unless debug_output
-    Dir["#{Rails.root}/app/models/*.rb"].each{ |file| require file }
+    Dir["#{RAILS_ROOT}/app/models/*.rb"].each{ |file| require file }
 
     if start_server
       puts "Starting Solr server..."

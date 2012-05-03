@@ -1,4 +1,4 @@
-require File.expand_path("#{File.dirname(__FILE__)}/test_helper")
+require File.expand_path("#{File.dirname(__FILE__)}/../test_helper")
 
 class CommonMethodsTest < Test::Unit::TestCase
   include ActsAsSolr::CommonMethods
@@ -33,6 +33,14 @@ class CommonMethodsTest < Test::Unit::TestCase
     
     should "return f for a float" do
       assert_equal "f", get_solr_field_type(:float)
+    end
+    
+    should "return f for a decimal" do
+      assert_equal "f", get_solr_field_type(:decimal)
+    end
+    
+    should "return do for a double" do
+      assert_equal "do", get_solr_field_type(:double)
     end
     
     should "return b for a boolean" do

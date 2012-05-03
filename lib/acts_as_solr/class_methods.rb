@@ -24,9 +24,9 @@ module ActsAsSolr #:nodoc:
     #
     #             Book.find_by_solr 'ruby', :filter_queries => ['price:5']
     #
-    # order:: - Orders (sort by) the result set using a given criteria:
+    # sort:: - Orders (sort by) the result set using a given criteria:
     #
-    #             Book.find_by_solr 'ruby', :order => 'description asc'
+    #             Book.find_by_solr 'ruby', :sort => 'description asc'
     # 
     # field_types:: This option is deprecated and will be obsolete by version 1.0.
     #               There's no need to specify the :field_types anymore when doing a 
@@ -156,9 +156,8 @@ module ActsAsSolr #:nodoc:
     #            => 0.12321548
     # 
     def multi_solr_search(query, options = {})
-      models = multi_model_suffix(options)
       options.update(:results_format => :objects) unless options[:results_format]
-      data = parse_query(query, options, models)
+      data = parse_query(query, options)
       
       if data.nil? or data.total_hits == 0
         return SearchResults.new(:docs => [], :total => 0)
@@ -182,12 +181,6 @@ module ActsAsSolr #:nodoc:
         data.hits.each{|doc| result << {"id" => doc["id"].to_s}}
       end
       result
-    end
-    
-    def multi_model_suffix(options)
-      models = "AND (#{solr_configuration[:type_field]}:\"#{self.name}\""
-      models << " OR " + options[:models].collect {|m| "#{solr_configuration[:type_field]}:\"" + m.to_s + "\""}.join(" OR ") if options[:models].is_a?(Array)
-      models << ")"
     end
     
     # returns the total number of documents found in the query specified:
