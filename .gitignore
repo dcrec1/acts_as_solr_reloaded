@@ -11,6 +11,10 @@ solr/start.jar
 solr/webapps/
 solr/solr/data/*
 
+Gemfile.lock
+test/solr
+test/tmp
+
 acts_as_solr_reloaded-*.gem
 *.log
 *.log
