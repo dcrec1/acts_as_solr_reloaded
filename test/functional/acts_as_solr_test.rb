@@ -5,6 +5,8 @@ class ActsAsSolrTest < Test::Unit::TestCase
 
   fixtures :books, :movies, :electronics, :postings, :authors, :advertises
   
+  MongoMapper.connection = Mongo::Connection.new("127.0.0.1", 27017, :slave_ok => true, :pool_size => 16, :timeout => 10)
+  MongoMapper.database = "#mydb_test"
   Document.destroy_all
 
   # Inserting new data into Solr and making sure it's getting indexed
@@ -96,6 +98,7 @@ class ActsAsSolrTest < Test::Unit::TestCase
   def test_find_with_dynamic_fields
     DynamicAttribute.delete_all
     Movie.first.dynamic_attributes.create! :name => 'description', :value => 'A very cool bike'
+    Movie.first.solr_save
 
     date = Time.now.strftime('%b %d %Y')
     ["dynamite AND #{date}", "description_t:bike AND #{date}", "goofy napoleon #{date}", "goofy #{date}"].each do |term|
@@ -109,6 +112,7 @@ class ActsAsSolrTest < Test::Unit::TestCase
   def test_dynamic_attributes_are_faceted
     DynamicAttribute.delete_all
     Movie.first.dynamic_attributes.create! :name => 'description', :value => 'A very cool bike'
+    Movie.first.solr_save
 
     records = Movie.find_by_solr '', :alternate_query => "description_t:bike", :facets => { :fields => [:description] }
     expected = { "A very cool bike" => 1 }

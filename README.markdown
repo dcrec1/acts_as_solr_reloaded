@@ -1,3 +1,5 @@
+[![Build status](https://secure.travis-ci.org/coletivoEITA/acts_as_solr_reloaded.png?branch=master)](http://travis-ci.org/coletivoEITA/acts_as_solr_reloaded)
+
 Description
 ======
 This plugin adds full text search capabilities and many other nifty features from Apache's [Solr](http://lucene.apache.org/solr/) to any Rails model.

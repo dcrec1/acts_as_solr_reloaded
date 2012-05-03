@@ -4,6 +4,7 @@ functional test suite, the latter testing the actual integration with Solr.
 == Install dependencies
 sudo apt-get install mongodb-server
 bundle install
+gem update --system 1.4.1
 
 == Running test
 To run the acts_as_solr's plugin tests run the following steps:
