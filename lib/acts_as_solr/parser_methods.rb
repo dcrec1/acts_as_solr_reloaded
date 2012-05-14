@@ -114,10 +114,10 @@ module ActsAsSolr #:nodoc:
 
     def solr_type_condition(options = {})
       classes = [self] + (self.subclasses || []) + (options[:models] || [])
-      classes.inject([]) do |condition, klass|
+      classes.map do |klass|
         next if klass.name.empty? 
-        condition << "#{solr_configuration[:type_field]}:\"#{klass.name}\""
-      end.join(' OR ')
+        "#{solr_configuration[:type_field]}:\"#{klass.name}\""
+      end.compact.join(' OR ')
     end
 
     # Parses the data returned from Solr
