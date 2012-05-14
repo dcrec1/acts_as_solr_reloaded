@@ -82,12 +82,12 @@ module ActsAsSolr #:nodoc:
 
     # Returns the number of pages found
     def total_pages
-      (total / per_page.to_f).ceil
+      per_page.zero? ? 0 : (total / per_page.to_f).ceil
     end
 
     # Returns the current page
     def current_page
-      (@solr_data[:start].to_i / per_page) + 1
+      per_page.zero? ? 0 : (@solr_data[:start].to_i / per_page) + 1
     end
 
     def blank?
