@@ -111,7 +111,7 @@ by calling `TestSolr.enable` and disable solr otherwise by calling
          end
          ActsAsSolr::ParserMethods.module_eval do
            def parse_results(*args)
-             raise 'Solr disabled!'
+             parse_results_orig nil, args[1]
            end
          end
      
