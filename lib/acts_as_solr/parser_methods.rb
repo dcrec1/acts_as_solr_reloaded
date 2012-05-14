@@ -17,7 +17,7 @@ module ActsAsSolr #:nodoc:
         Deprecation.validate_query(options)
 
         if options[:alternate_query]
-          query = query.blank? ? '' : sanitize_query(query)
+          query = query.blank? ? '*:*' : sanitize_query(query)
           query = "#{options[:alternate_query]} #{query}"
         else
           query = query.blank? ? '*:*' : sanitize_query(query)
