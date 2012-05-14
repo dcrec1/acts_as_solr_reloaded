@@ -31,26 +31,22 @@
 
 <schema name="acts_as_solr" version="0.9">
   <types>
-    <fieldType name="id" class="solr.StrField" sortMissingLast="true" omitNorms="false"/>
-    <fieldType name="facet" class="solr.StrField" sortMissingLast="true" omitNorms="false"/>
-    <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="false"/>
-    <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="false"/>
-    <fieldType name="integer" class="solr.IntField" omitNorms="false"/>
-    <fieldType name="long" class="solr.LongField" omitNorms="false"/>
-    <fieldType name="float" class="solr.FloatField" omitNorms="false"/>
-    <fieldType name="double" class="solr.DoubleField" omitNorms="false"/>
-    <fieldType name="sint" class="solr.SortableIntField" sortMissingLast="true" omitNorms="false"/>
-    <fieldType name="slong" class="solr.SortableLongField" sortMissingLast="true" omitNorms="false"/>
-    <fieldType name="sfloat" class="solr.SortableFloatField" sortMissingLast="true" omitNorms="false"/>
-    <fieldType name="sdouble" class="solr.SortableDoubleField" sortMissingLast="true" omitNorms="false"/>
-    <fieldType name="date" class="solr.TrieDateField" sortMissingLast="true" omitNorms="false"/>
-    <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
-      <analyzer>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-      </analyzer>
-    </fieldType>
+    <fieldType name="id"       class="solr.StrField"            sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="facet"    class="solr.StrField"            sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="string"   class="solr.StrField"            sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="boolean"  class="solr.BoolField"           sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="integer"  class="solr.IntField"            omitNorms="false"/>
+    <fieldType name="float"    class="solr.FloatField"          omitNorms="false"/>
+    <fieldType name="double"   class="solr.DoubleField"         omitNorms="false"/>
+    <fieldType name="date"     class="solr.TrieDateField"       sortMissingLast="true" omitNorms="false"/>
 
-    <fieldType name="text" class="solr.TextField" autoGeneratePhraseQueries="false">
+    <!-- sortable versions -->
+    <fieldType name="sstring" class="solr.StrField"            sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="sinteger" class="solr.SortableIntField"    sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="sfloat"   class="solr.SortableFloatField"  sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="sdouble"  class="solr.SortableDoubleField" sortMissingLast="true" omitNorms="false"/>
+
+    <fieldType name="text"     class="solr.TextField" autoGeneratePhraseQueries="false">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
@@ -98,19 +94,6 @@
         -->
       </analyzer>
     </fieldType>
-
-    <fieldType name="alphaOnlySort" class="solr.TextField" sortMissingLast="true" omitNorms="false">
-      <analyzer>
-        <tokenizer class="solr.KeywordTokenizerFactory"/>
-        <filter class="solr.LowerCaseFilterFactory" />
-        <filter class="solr.TrimFilterFactory" />
-        <filter class="solr.PatternReplaceFilterFactory" pattern="([^a-z])" replacement="" replace="all"/>
-      </analyzer>
-    </fieldType>
-
-    <fieldtype name="text_zh" class="solr.TextField">
-      <analyzer class="org.apache.lucene.analysis.cn.ChineseAnalyzer"/>
-    </fieldtype>
     
     <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100" >
       <analyzer>
@@ -121,58 +104,73 @@
       </analyzer>
     </fieldType>
 
-    <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
+    <fieldType name="location"  class="solr.LatLonType" subFieldSuffix="_coordinate"/>
 
+    <fieldtype name="text_zh"   class="solr.TextField">
+      <analyzer class="org.apache.lucene.analysis.cn.ChineseAnalyzer"/>
+    </fieldtype>
  </types>
 
 
  <fields>
-   <field name="latlng" type="location" indexed="true" stored="true" />
-   <field name="latlng_0_coordinate" type="sdouble" indexed="true" stored="true" multiValued="false"/>
-   <field name="latlng_1_coordinate" type="sdouble" indexed="true" stored="true" multiValued="false"/>
+   <field        name="latlng"              type="location"  indexed="true"  stored="true" />
+   <field        name="latlng_0_coordinate" type="sdouble"   indexed="true"  stored="true"  multiValued="false"/>
+   <field        name="latlng_1_coordinate" type="sdouble"   indexed="true"  stored="true"  multiValued="false"/>
 
-   <field name="id" type="id"         indexed="true" stored="true" multiValued="true" required="true"/>
-   <field name="_id_s" type="id"      indexed="true" stored="true" multiValued="true"/>
-   <field name="pk_i" type="integer"  indexed="true" stored="true" multiValued="true"/>
-   <field name="pk_s" type="id"       indexed="true" stored="true" multiValued="true"/>
-   <field name="type_s" type="string" indexed="true" stored="true" multiValued="true" required="true"/>
+   <field        name="id"                  type="id"        indexed="true"  stored="true"  multiValued="true" required="true"/>
+   <field        name="_id_s"               type="id"        indexed="true"  stored="true"  multiValued="true"/>
+   <field        name="pk_i"                type="integer"   indexed="true"  stored="true"  multiValued="true"/>
+   <field        name="pk_s"                type="id"        indexed="true"  stored="true"  multiValued="true"/>
+   <field        name="type_s"              type="string"    indexed="true"  stored="true"  multiValued="true" required="true"/>
 
-   <dynamicField name="*_t" type="text"      indexed="true" stored="true"  multiValued="true"/>
-   <dynamicField name="*_s" type="text"      indexed="true" stored="true"  multiValued="false"/>
-   <dynamicField name="*_i" type="integer"   indexed="true" stored="false" multiValued="true"/>
-   <dynamicField name="*_f" type="float"     indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_do" type="double"   indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_b" type="boolean"   indexed="true" stored="false" multiValued="true"/>
-   <dynamicField name="*_d" type="date"      indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_ri" type="sint"     indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_rf" type="sfloat"   indexed="true" stored="false" multiValued="false"/>
-   <dynamicField name="*_facet" type="facet" indexed="true" stored="false" multiValued="true"/>
+    <!-- sortable versions -->
+   <dynamicField name="*sortable_s"         type="sstring"   indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*sortable_i"         type="sinteger"  indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*sortable_f"         type="sfloat"    indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*sortable_do"        type="sdouble"   indexed="true"  stored="false" multiValued="false"/>
 
-   <field name="text" type="text"       indexed="true" stored="false" multiValued="true"/>
-   <field name="spell" type="textSpell" indexed="true" stored="true" multiValued="true"/>
+   <dynamicField name="*_t"                 type="text"      indexed="true"  stored="true"  multiValued="true"/>
+   <dynamicField name="*_s"                 type="text"      indexed="true"  stored="true"  multiValued="false"/>
+   <dynamicField name="*_i"                 type="integer"   indexed="true"  stored="false" multiValued="true"/>
+   <dynamicField name="*_f"                 type="float"     indexed="true"  stored="true"  multiValued="false"/>
+   <dynamicField name="*_do"                type="double"    indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*_b"                 type="boolean"   indexed="true"  stored="false" multiValued="true"/>
+   <dynamicField name="*_d"                 type="date"      indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*_ri"                type="sinteger"  indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*_rf"                type="sfloat"    indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*_facet"             type="facet"     indexed="true"  stored="false" multiValued="true"/>
 
-   <dynamicField name="*_s_mv" type="string"     indexed="true" stored="false" multiValued="true"/>
-   <dynamicField name="*_zh_text" type="text_zh" indexed="true" stored="false" multiValued="true"/>
-   <dynamicField name="*_display" type="text"    indexed="false" stored="true" multiValued="true"/>
+   <field        name="lat"                 type="sdouble"   indexed="true"  stored="true"/>
+   <field        name="lng"                 type="sdouble"   indexed="true"  stored="true"/>
+   <dynamicField name="_local*"             type="sdouble"   indexed="true"  stored="true"/> <!-- used internally by localsolr -->
+   <field        name="geo_distance"        type="sdouble"/> <!-- Optional but used for distributed searching -->
 
-   <field name="lat" type="sdouble" indexed="true" stored="true"/><!-- must match the latField in solrconfig.xml -->
-   <field name="lng" type="sdouble" indexed="true" stored="true"/><!-- must match the lngField in solrconfig.xml -->
-   <field name="geo_distance" type="sdouble"/> <!-- Optional but used for distributed searching -->
-   <dynamicField name="_local*" type="sdouble" indexed="true" stored="true"/><!-- used internally by localsolr -->
+   <field        name="text"                type="text"      indexed="true"  stored="false" multiValued="true"/>
+   <field        name="spell"               type="textSpell" indexed="true"  stored="true"  multiValued="true"/>
+
+   <dynamicField name="*_s_mv"              type="string"    indexed="true"  stored="false" multiValued="true"/>
+   <dynamicField name="*_zh_text"           type="text_zh"   indexed="true"  stored="false" multiValued="true"/>
+   <dynamicField name="*_display"           type="text"      indexed="false" stored="true"  multiValued="true"/>
+
  </fields>
 
  <uniqueKey>id</uniqueKey>
+
  <defaultSearchField>text</defaultSearchField>
+ <copyField source="*_s"     dest="text"/>
+ <copyField source="*_t"     dest="text"/>
+ <copyField source="*_i"     dest="text"/>
+ <copyField source="*_f"     dest="text"/>
+ <copyField source="*_d"     dest="text"/>
+ <copyField source="*_do"    dest="text"/>
+ <copyField source="*_facet" dest="text"/>
+
+ <copyField source="*_s"     dest="spell"/>
+ <copyField source="*_t"     dest="spell"/>
+ <copyField source="*_facet" dest="spell"/>
 
  <copyField source="lat_f" dest="latlng_0_coordinate"/>
  <copyField source="lng_f" dest="latlng_1_coordinate"/>
-
- <copyField source="*_s" dest="text"/>
- <copyField source="*_t" dest="text"/>
- <copyField source="*_facet" dest="text"/>
- <copyField source="*_s" dest="spell"/>
- <copyField source="*_t" dest="spell"/>
- <copyField source="*_facet" dest="spell"/>
 
  <solrQueryParser defaultOperator="AND"/>
 
