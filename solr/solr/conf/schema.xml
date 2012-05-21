@@ -34,14 +34,22 @@
     <fieldType name="id"       class="solr.StrField"            sortMissingLast="true" omitNorms="false"/>
     <fieldType name="facet"    class="solr.StrField"            sortMissingLast="true" omitNorms="false"/>
     <fieldType name="string"   class="solr.StrField"            sortMissingLast="true" omitNorms="false"/>
+
     <fieldType name="boolean"  class="solr.BoolField"           sortMissingLast="true" omitNorms="false"/>
-    <fieldType name="integer"  class="solr.IntField"            omitNorms="false"/>
-    <fieldType name="float"    class="solr.FloatField"          omitNorms="false"/>
-    <fieldType name="double"   class="solr.DoubleField"         omitNorms="false"/>
+    <fieldType name="integer"  class="solr.TrieIntField"        omitNorms="false"/>
+    <fieldType name="float"    class="solr.TrieFloatField"      omitNorms="false"/>
+    <fieldType name="double"   class="solr.TrieDoubleField"     omitNorms="false"/>
     <fieldType name="date"     class="solr.TrieDateField"       sortMissingLast="true" omitNorms="false"/>
 
     <!-- sortable versions -->
-    <fieldType name="sstring" class="solr.StrField"            sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="sstring" class="solr.TextField"           sortMissingLast="true"  omitNorms="false">
+      <analyzer>
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <filter class="solr.TrimFilterFactory" />
+        <filter class="solr.LowerCaseFilterFactory" />
+        <filter class="solr.ASCIIFoldingFilterFactory"/>
+      </analyzer>
+    </fieldType>
     <fieldType name="sinteger" class="solr.SortableIntField"    sortMissingLast="true" omitNorms="false"/>
     <fieldType name="sfloat"   class="solr.SortableFloatField"  sortMissingLast="true" omitNorms="false"/>
     <fieldType name="sdouble"  class="solr.SortableDoubleField" sortMissingLast="true" omitNorms="false"/>
@@ -109,6 +117,19 @@
     <fieldtype name="text_zh"   class="solr.TextField">
       <analyzer class="org.apache.lucene.analysis.cn.ChineseAnalyzer"/>
     </fieldtype>
+
+    <!-- The "RandomSortField" is not used to store or search any
+         data.  You can declare fields of this type it in your schema
+         to generate pseudo-random orderings of your docs for sorting 
+         purposes.  The ordering is generated based on the field name 
+         and the version of the index, As long as the index version
+         remains unchanged, and the same field name is reused,
+         the ordering of the docs will be consistent.  
+         If you want different psuedo-random orderings of documents,
+         for the same version of the index, use a dynamicField and
+         change the name
+     -->
+    <fieldType name="random" class="solr.RandomSortField" indexed="true" />
  </types>
 
 
@@ -138,6 +159,7 @@
    <dynamicField name="*_d"                 type="date"      indexed="true"  stored="false" multiValued="false"/>
    <dynamicField name="*_ri"                type="sinteger"  indexed="true"  stored="false" multiValued="false"/>
    <dynamicField name="*_rf"                type="sfloat"    indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*_r"                 type="random"    indexed="true"  stored="false" multiValued="false"/>
    <dynamicField name="*_facet"             type="facet"     indexed="true"  stored="false" multiValued="true"/>
 
    <field        name="lat"                 type="sdouble"   indexed="true"  stored="true"/>
