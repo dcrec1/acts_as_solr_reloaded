@@ -16,9 +16,7 @@ module ActsAsSolr #:nodoc:
       begin
         Deprecation.validate_query(options)
 
-        query_options[:filter_queries] ||= []
-        options[:alternate_query] ||= ''
-        options[:alternate_query].strip!
+        query_options[:filter_queries] = []
         query.strip!
 
         # using *:* disable index boosts, so use the type filter
@@ -26,14 +24,20 @@ module ActsAsSolr #:nodoc:
           query = solr_type_condition(options)
         else
           query = sanitize_query(query)
-          query_options[:filter_queries] = [solr_type_condition(options)]
+          query_options[:filter_queries] << solr_type_condition(options)
 
           # put types on filtered fields
           query = replace_types([*query], ':').first
         end
 
+        query_options[:filter_queries] += replace_types([*options[:filter_queries]], '') if options[:filter_queries]
+
+        options[:alternate_query] ||= ''
+        options[:alternate_query].strip!
         query = "#{options[:alternate_query]} #{query}" unless options[:alternate_query].blank?
+
         query = add_relevance query, options[:relevance]
+
         query_options[:query] = query
 
         field_list = options[:models].nil? ? solr_configuration[:primary_key_field] : "id"
@@ -45,8 +49,6 @@ module ActsAsSolr #:nodoc:
         query_options[:start] = offset
 
         query_options[:operator] = options[:operator]
-
-        query_options[:filter_queries] += replace_types([*options[:filter_queries]], '') if options[:filter_queries]
 
         query_options[:boost_functions] = replace_types([*options[:boost_functions]], '').join(' ') if options[:boost_functions]
 
