@@ -4,7 +4,7 @@
 # - description
 
 class Movie < ActiveRecord::Base
-  acts_as_solr :additional_fields => [:current_time, {:time_on_xml => :date}]
+  acts_as_solr :additional_fields => [:current_time, {:time_on_xml => :date}], :dynamic_attributes => true
   
   def current_time
     Time.now.to_s

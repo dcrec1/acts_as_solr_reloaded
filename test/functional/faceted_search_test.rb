@@ -14,11 +14,10 @@ class FacetedSearchTest < Test::Unit::TestCase
   # A basic faceted search using just one facet field
   def test_faceted_search_basic
     records = Electronic.find_by_solr "memory", :facets => {:fields =>[:category]}
+    ipod_video = Electronic.find 1
     assert_equal 4, records.docs.size
-    assert_match /Apple 60 GB Memory iPod/, records.docs.first.name
-    assert_equal({"category_facet" => {"Electronics" => 1, 
-                                       "Memory" => 2, 
-                                       "Hard Drive" => 1}}, 
+    assert records.docs.include?(ipod_video)
+    assert_equal({"category_facet" => [["Electronics", 1], ["Hard Drive", 1], ["Memory", 2]]}, 
                  records.facets['facet_fields'])
   end
   
@@ -33,14 +32,12 @@ class FacetedSearchTest < Test::Unit::TestCase
   def test_faceted_search_multiple_fields
     records = Electronic.find_by_solr "memory", :facets => {:fields =>[:category, :manufacturer]}
     assert_equal 4, records.docs.size
-    assert_equal({"category_facet" => {"Electronics" => 1, 
-                                       "Memory" => 2, 
-                                       "Hard Drive" => 1},
-                  "manufacturer_facet" => {"Dell, Inc" => 0,
-                                           "Samsung Electronics Co. Ltd." => 1, 
-                                           "Corsair Microsystems Inc." => 1, 
-                                           "A-DATA Technology Inc." => 1,
-                                           "Apple Computer Inc." => 1}}, records.facets['facet_fields'])
+    assert_equal({"category_facet" => [["Electronics", 1], ["Hard Drive", 1], ["Memory", 2]],
+                  "manufacturer_facet" => [["A-DATA Technology Inc.", 1],
+                    ["Apple Computer Inc.", 1],
+                    ["Corsair Microsystems Inc.", 1],
+                    ["Dell, Inc", 0],
+                    ["Samsung Electronics Co. Ltd.", 1]]}, records.facets['facet_fields'])
   end
   
   # A basic faceted search using facet queries to get counts. 
@@ -56,7 +53,7 @@ class FacetedSearchTest < Test::Unit::TestCase
     assert_equal({"facet_queries" => {"price_rf:[* TO 200.00]"=>2,
                                       "price_rf:[200.00 TO 500.00]"=>1,
                                       "price_rf:[500.00 TO *]"=>1}, 
-                  "facet_fields" => {}, "facet_dates" => {}}, records.facets)
+                   "facet_ranges" => {}, "facet_fields" => {}, "facet_dates" => {}}, records.facets)
   end
   
   # Faceted search specifying the query and fields
@@ -72,9 +69,11 @@ class FacetedSearchTest < Test::Unit::TestCase
     assert_equal 1, q["price_rf:[200.00 TO 500.00]"]
   
     f = records.facets["facet_fields"]
+    f["category_facet"] = Hash[f["category_facet"]]
     assert_equal 1, f["category_facet"]["Electronics"]
     assert_equal 2, f["category_facet"]["Memory"]
     assert_equal 1, f["category_facet"]["Hard Drive"]
+    f["manufacturer_facet"] = Hash[f["manufacturer_facet"]]
     assert_equal 1, f["manufacturer_facet"]["Samsung Electronics Co. Ltd."]
     assert_equal 1, f["manufacturer_facet"]["Corsair Microsystems Inc."]
     assert_equal 1, f["manufacturer_facet"]["A-DATA Technology Inc."]
@@ -84,23 +83,23 @@ class FacetedSearchTest < Test::Unit::TestCase
   # Faceted searches with :sort and :zeros options turned on/off
   def test_faceted_search_using_zero_and_sort
     records = Electronic.find_by_solr "memory", :facets => {:fields =>[:category]}
-    assert_equal({"category_facet"=>{"Electronics"=>1, "Memory"=>2, "Hard Drive"=>1}}, records.facets['facet_fields'])
+    assert_equal({"category_facet"=>[["Electronics", 1], ["Hard Drive", 1], ["Memory", 2]]}, records.facets['facet_fields'])
     
     records = Electronic.find_by_solr "memory", :facets => {:sort => true, :fields =>[:category]}
-    assert_equal({"category_facet"=>{"Memory"=>2, "Electronics"=>1, "Hard Drive"=>1}}, records.facets['facet_fields'])
+    assert_equal({"category_facet"=>[["Memory", 2], ["Electronics", 1], ["Hard Drive", 1]]}, records.facets['facet_fields'])
     
     records = Electronic.find_by_solr "memory", :facets => {:fields =>[:manufacturer]}
-    assert_equal({"manufacturer_facet" => {"Dell, Inc" => 0,
-                                          "Samsung Electronics Co. Ltd." => 1, 
-                                          "Corsair Microsystems Inc." => 1, 
-                                          "A-DATA Technology Inc." => 1,
-                                          "Apple Computer Inc." => 1}}, records.facets['facet_fields'])
+    assert_equal({"manufacturer_facet" => [["A-DATA Technology Inc.", 1],
+                   ["Apple Computer Inc.", 1],
+                   ["Corsair Microsystems Inc.", 1],
+                   ["Dell, Inc", 0],
+                   ["Samsung Electronics Co. Ltd.", 1]]}, records.facets['facet_fields'])
   
     records = Electronic.find_by_solr "memory", :facets => {:zeros => false, :fields =>[:manufacturer]}
-    assert_equal({"manufacturer_facet" => {"Samsung Electronics Co. Ltd." => 1, 
-                                          "Corsair Microsystems Inc." => 1, 
-                                          "A-DATA Technology Inc." => 1,
-                                          "Apple Computer Inc." => 1}}, records.facets['facet_fields'])
+    assert_equal({"manufacturer_facet" => [["A-DATA Technology Inc.", 1],
+                   ["Apple Computer Inc.", 1],
+                   ["Corsair Microsystems Inc.", 1],
+                   ["Samsung Electronics Co. Ltd.", 1]]}, records.facets['facet_fields'])
   end
   
   # Faceted search with 'drill-down' option being passed.
@@ -110,13 +109,13 @@ class FacetedSearchTest < Test::Unit::TestCase
   def test_faceted_search_with_drill_down
     records = Electronic.find_by_solr "memory", :facets => {:fields =>[:category]}
     assert_equal 4, records.docs.size
-    assert_equal({"category_facet"=>{"Electronics"=>1, "Memory"=>2, "Hard Drive"=>1}}, records.facets['facet_fields'])
+    assert_equal({"category_facet"=>[["Electronics", 1], ["Hard Drive", 1], ["Memory", 2]]}, records.facets['facet_fields'])
     
     records = Electronic.find_by_solr "memory", :facets => {:fields =>[:category],
                                                                :browse => "category:Memory",
                                                                :zeros => false}
     assert_equal 2, records.docs.size
-    assert_equal({"category_facet"=>{"Memory"=>2}}, records.facets['facet_fields'])
+    assert_equal({"category_facet"=>[["Memory", 2]]}, records.facets['facet_fields'])
   end
   
   def test_faceted_search_with_dates

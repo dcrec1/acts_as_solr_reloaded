@@ -10,19 +10,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class Solr::Request::AddDocument < Solr::Request::Update
+require File.expand_path(File.dirname(__FILE__) + '/json_update')
+
+class Solr::Request::AddDocument < Solr::Request::JsonUpdate
 
   # create the request, optionally passing in a Solr::Document
   #
-  #   request = Solr::Request::AddDocument.new doc
+  #   request = Solr::Request::AddDocument.new(doc)
   #
   # as a short cut you can pass in a Hash instead:
   #
-  #   request = Solr::Request::AddDocument.new :creator => 'Jorge Luis Borges'
+  #   request = Solr::Request::AddDocument.new(:creator => 'Jorge Luis Borges')
   # 
   # or an array, to add multiple documents at the same time:
   # 
-  #   request = Solr::Request::AddDocument.new([doc1, doc2, doc3])
+  #   request = Solr::Request::AddDocument.new([doc1, doc2, doc3]))
     
   def initialize(doc={})
     @docs = []
@@ -33,14 +35,22 @@ class Solr::Request::AddDocument < Solr::Request::Update
     end
   end
 
-  # returns the request as a string suitable for posting
-  
-  def to_s
+  def to_json
+    '{' + 
+    @docs.map{ |doc| "\"add\": #{doc.to_jsonhash.to_json}" }.join(',') +
+    '}'
+  end
+
+  def to_xml
     e = Solr::XML::Element.new 'add'
     for doc in @docs
       e.add_element doc.to_xml
     end
     return e.to_s
+  end
+
+  def to_s
+    to_json
   end
   
   private

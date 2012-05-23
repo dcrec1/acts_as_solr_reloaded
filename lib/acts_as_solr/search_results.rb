@@ -27,8 +27,15 @@ module ActsAsSolr #:nodoc:
   #
   #
   class SearchResults
+
+    include Enumerable
+
     def initialize(solr_data={})
       @solr_data = solr_data
+    end
+
+    def each(&block)
+      self.results.each &block
     end
 
     # Returns an array with the instances. This method
@@ -60,12 +67,12 @@ module ActsAsSolr #:nodoc:
 
     # Returns the highlighted fields which one has asked for..
     def highlights
-        @solr_data[:highlights]
+      @solr_data[:highlights]
     end
     
     # Returns a suggested query
     def suggest
-      @solr_data[:spellcheck]['suggestions']['collation'].match(/\((.+)\) /)[1]
+      Hash[@solr_data[:spellcheck]['suggestions']]['collation']
     end
 
     # Returns the number of documents per page
@@ -75,18 +82,53 @@ module ActsAsSolr #:nodoc:
 
     # Returns the number of pages found
     def total_pages
-      (total / per_page.to_f).ceil
+      per_page.zero? ? 0 : (total / per_page.to_f).ceil
     end
 
     # Returns the current page
     def current_page
-      (@solr_data[:start].to_i / per_page) + 1
+      per_page.zero? ? 0 : (@solr_data[:start].to_i / per_page) + 1
+    end
+
+    def blank?
+      total_entries == 0
+    end
+
+    def size
+      total_entries
+    end
+
+    def offset
+      (current_page - 1) * per_page
+    end
+
+    def previous_page
+      if current_page > 1
+        current_page - 1
+      else
+        false
+      end
+    end
+
+    def next_page
+      if current_page < total_pages
+        current_page + 1
+      else
+        false
+      end
+    end
+
+    def method_missing(symbol, *args, &block)
+      self.results.send(symbol, *args, &block)
+    rescue NoMethodError
+      raise NoMethodError, "There is no method called #{symbol} at #{self.class.name} - #{self.inspect}"
     end
 
     alias docs results
     alias records results
     alias num_found total
     alias total_hits total
+    alias total_entries total
     alias highest_score max_score
   end
 

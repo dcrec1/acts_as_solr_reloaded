@@ -2,5 +2,5 @@
 # - id
 
 class Advertise < ActiveRecord::Base
-  acts_as_solr :dynamic_attributes => true, :spatial => true
+  acts_as_solr :spatial => true
 end

@@ -1,63 +1,127 @@
+[![Build status](https://secure.travis-ci.org/coletivoEITA/acts_as_solr_reloaded.png?branch=master)](http://travis-ci.org/coletivoEITA/acts_as_solr_reloaded)
+
 Description
 ======
 This plugin adds full text search capabilities and many other nifty features from Apache's [Solr](http://lucene.apache.org/solr/) to any Rails model.
 It was based on the first draft by Erik Hatcher.
 
+This plugin is intended for use in old versions of Rails. For newer versions, I strongly advice using Sunspot!
+Nevertheless, this plugin is used for Noosfero project in production. Any problem please open an issue.
+
+It should support Rails 2.1 (and greater 2.x) and is developed latest Solr versions, so don't expect it to run on older Solr.
+
 Installation
 ======
 
-    script/plugin install git://github.com/dcrec1/acts_as_solr_reloaded.git
+Install as a plugin
+
+    script/plugin install git://github.com/brauliobo/acts_as_solr_reloaded.git
+
+Download Solr
+
+    rake solr:download
 
 Requirements
 ------
-* Java Runtime Environment(JRE) 1.6 aka 6.0 or newer [http://www.java.com/en/download/index.jsp](http://www.java.com/en/download/index.jsp)
-* If you have libxml-ruby installed, make sure it's at least version 0.7
+* Java Runtime Environment(JRE) 6.0 (or newer) from Oracle or OpenJDK
 
 Configuration
 ======
-If you are using acts_as_solr as a Rails plugin, everything is configured to work out of the box. You can use `rake solr:start` and `rake solr:stop`
-to start and stop the Solr web server (an embedded Jetty). If the default JVM options aren't suitable for
-your environment, you can configure them in solr.yml with the option `jvm_options`. There is a default
-set for the production environment to have some more memory available for the JVM than the defaults, but
-feel free to change them to your liking.
+See config/solr.yml file.
 
-If you are using acts_as_solr as a gem, create a file named lib/tasks/acts_as_solr.rake:
-<pre><code>
-require "acts_as_solr/tasks"
-</code></pre>
+For solr configuration the important files are solrconfig.xml and schema.xml.
 
 Basic Usage
 ======
-<pre><code>
-# Just include the line below to any of your ActiveRecord models:
-  acts_as_solr
+Just include the line below to any of your ActiveRecord models:
 
-# Or if you want, you can specify only the fields that should be indexed:
-  acts_as_solr :fields => [:name, :author]
+    acts_as_solr
 
-# Then to find instances of your model, just do:
-  Model.search(query) #query is a string representing your query
+Or if you want, you can specify only the fields that should be indexed:
 
-# Please see ActsAsSolr::ActsMethods for a complete info
+    acts_as_solr :fields => [:name, :author]
+    
+Then to find instances of your model, just do:
 
-</code></pre>
+    Model.search(query) #query is a string representing your query
 
+Please see ActsAsSolr::ActsMethods for a complete info
 
-`acts_as_solr` in your tests
+Pagination
 ======
-To test code that uses `acts_as_solr` you must start a Solr server for the test environment. You can do that with `rake solr:start RAILS_ENV=test`
+ActsAsSolr implements in SearchResults class an interface compatible with will_paginate and maybe others.
+
+In your tests
+======
+To test code that uses `acts_as_solr` you must start a Solr server for the test environment.
+You can add to the beggining of your test/test_helper.rb the code:
+
+    ENV["RAILS_ENV"] = "test"
+    abort unless system 'rake solr:start' 
+    at_exit { system 'rake solr:stop' }
 
 However, if you would like to mock out Solr calls so that a Solr server is not needed (and your tests will run much faster), just add this to your `test_helper.rb` or similar:
 
-<pre><code>
-class ActsAsSolr::Post
-  def self.execute(request)
-    true
-  end
-end
-</pre></code>
+    class ActsAsSolr::Post
+      def self.execute(request)
+        true
+      end
+    end
 
-([via](http://www.subelsky.com/2007/10/actsassolr-capistranhttpwwwbloggercomim.html#c1646308013209805416))
+Or to be more realistic and preserve performance, enable Solr when needed,
+by calling `TestSolr.enable` and disable solr otherwise by calling
+`TestSolr.disable` on `Test::Unit::TestCase`'s `setup`:
+
+     class ActsAsSolr::Post
+       class << self
+         alias_method :execute_orig, :execute
+       end
+     end
+     module ActsAsSolr::ParserMethods
+       alias_method :parse_results_orig, :parse_results
+     end
+     
+     class TestSolr
+     
+       def self.enable
+         ActsAsSolr::Post.class_eval do
+           def self.execute(*args)
+             execute_orig *args
+           end
+         end
+         ActsAsSolr::ParserMethods.module_eval do
+           def parse_results(*args)
+             parse_results_orig *args
+           end
+         end
+     
+         # clear index
+         ActsAsSolr::Post.execute(Solr::Request::Delete.new(:query => '*:*'))
+     
+         @solr_disabled = false
+       end
+     
+       def self.disable
+         return if @solr_disabled
+     
+         ActsAsSolr::Post.class_eval do
+           def self.execute(*args)
+             true
+           end
+         end
+         ActsAsSolr::ParserMethods.module_eval do
+           def parse_results(*args)
+             parse_results_orig nil, args[1]
+           end
+         end
+     
+         @solr_disabled = true
+       end
+     
+     end
+     
+     # disable solr actions by default
+     TestSolr.disable
 
 Release Information
 ======
