@@ -1,4 +1,4 @@
-require File.expand_path("#{File.dirname(__FILE__)}/test_helper")
+require File.expand_path("#{File.dirname(__FILE__)}/../test_helper")
 module Solr; end
 
 class InstanceMethodsTest < Test::Unit::TestCase
@@ -148,7 +148,8 @@ class InstanceMethodsTest < Test::Unit::TestCase
   
     context "when converting an instance to a solr document" do
       setup do
-        @instance.configuration = {:if => true, :auto_commit => true, :solr_fields => {:name => {:boost => 9.0}}, :boost => 10.0}
+        @instance.configuration = {:if => true, :auto_commit => true, :fields => [:name, :last_name],
+          :solr_fields => {:name => {:boost => 9.0}, :last_name => {:type => :string}}, :boost => 10.0}
         @instance.solr_configuration = {:type_field => "type", :primary_key_field => "pk_id", :default_boost => 25.0}
       end
     
@@ -183,12 +184,12 @@ class InstanceMethodsTest < Test::Unit::TestCase
         end
       
         should "add the longitude" do
-          field = @fields.find { |field| field.name.eql? "lng" }
+          field = @fields.find { |field| field.name.eql? "lng_f" }
           assert_equal @local.longitude, field.value
         end
         
         should "add the latitude" do
-          field = @fields.find { |field| field.name.eql? "lat" }
+          field = @fields.find { |field| field.name.eql? "lat_f" }
           assert_equal @local.latitude, field.value
         end
       end
@@ -198,7 +199,7 @@ class InstanceMethodsTest < Test::Unit::TestCase
           @instance.stubs(:local).returns(nil)
           @instance.configuration[:spatial] = true
           fields = @instance.to_solr_doc.fields
-          assert_equal nil, fields.find { |field| field.name.eql? 'lng' }
+          assert_equal nil, fields.find { |field| field.name.eql? 'lng_f' }
         end
       end
       
@@ -217,24 +218,19 @@ class InstanceMethodsTest < Test::Unit::TestCase
           field = @instance.to_solr_doc.fields.find {|f| f.name.to_s == "name_s"}
           assert_equal 25.0, field.boost
         end
+
+        should "ignore null fields" do
+          @instance.stubs(:name_for_solr).returns(nil)
+          @instance.stubs(:last_name_for_solr).returns('Dohn')
+          assert ! @instance.to_solr_doc.fields.find {|f| f.name.to_s == "name_s"}
+          assert @instance.to_solr_doc.fields.find {|f| f.name.to_s == "last_name_s"}
+        end
         
         should "not overwrite the type or id field" do
           @instance.configuration[:solr_fields] = {:type => {}, :id => {}}
           doc = @instance.to_solr_doc
           assert_not_equal "humbug", doc[:type]
           assert_not_equal "bogus", doc[:id]
-        end
-        
-        should "set the default value if field value is nil" do
-          @instance.name = nil
-          @instance.expects(:set_value_if_nil).with('s')
-          @instance.to_solr_doc
-        end
-        
-        should "not include nil values" do
-          @instance.name = ""
-          @instance.stubs(:set_value_if_nil).returns ""
-          assert_nil @instance.to_solr_doc[:name_s]
         end
         
         should "escape the contents" do
@@ -293,7 +289,7 @@ class InstanceMethodsTest < Test::Unit::TestCase
             @instance.stubs(:people).returns(@people)
             @reflection = OpenStruct.new(:macro => :has_many)
             @instance.class.stubs(:reflect_on_association).returns(@reflection)
-            @instance.configuration[:solr_includes] = {@assoc => {}}
+            @instance.configuration[:solr_includes] = {@assoc => {:type => :string}}
             @instance.solr_configuration.merge! :default_boost => 35.0
           end
 
@@ -318,7 +314,6 @@ class InstanceMethodsTest < Test::Unit::TestCase
           end
 
           should "set the default boost for the include, if none is configured" do
-            # @instance.configuration[:solr_includes] = {@assoc => {}}
             field = @instance.to_solr_doc.fields.find {|f| f.name.to_s == "person_s"}
             assert_equal 35.0, field.boost
           end
@@ -330,10 +325,9 @@ class InstanceMethodsTest < Test::Unit::TestCase
           end
 
           should "default to a field value with all association attributes" do
-            # @instance.configuration[:solr_includes] = {@assoc => {}}
             field = @instance.to_solr_doc.fields.find {|f| f.name.to_s == "person_s"}
             @people.first.attributes.each do |attr, value|
-              assert_match /#{attr}=#{value}/, field.value
+              assert_match /#{value}/, field.value
             end
           end
 
@@ -358,7 +352,6 @@ class InstanceMethodsTest < Test::Unit::TestCase
           end
 
           should "include multiple values separately if the :multivalued options is specified"    do
-            # @instance.configuration[:solr_includes] = {@assoc => {}}
             second_person = {:name => 'Dean Venture', :address => 'Venture Compound'}
             @people << OpenStruct.new(second_person.merge(:attributes => second_person))
             fields = @instance.to_solr_doc.fields.select {|f| f.name.to_s == "person_s"}

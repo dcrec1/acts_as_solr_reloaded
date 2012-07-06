@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # The ASF licenses this file to You under the Apache License, Version 2.0
 # (the "License"); you may not use this file except in compliance with
 # the License.  You may obtain a copy of the License at
@@ -11,17 +10,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO: fill out Solr tasks: start, stop, ping, optimize, etc.
+# a parent class for all requests that go through the solr update handler
+# TODO: Use new xml update handler for better error responses
+class Solr::Request::JsonUpdate < Solr::Request::Base
+  def response_format
+    :xml
+  end
 
-require 'rake'
-require 'rake/tasklib'
-
-module Solr
-  namespace :solr do
-    desc "Start Solr"
-    task :start do
-      # TODO: actually start it up!
-      puts "Starting..."
-    end
+  def handler
+    'update/json'
   end
 end

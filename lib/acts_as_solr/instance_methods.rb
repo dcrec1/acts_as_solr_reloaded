@@ -40,37 +40,28 @@ module ActsAsSolr #:nodoc:
       doc.boost = validate_boost(configuration[:boost]) if configuration[:boost]
       
       doc << {:id => solr_id,
-              solr_configuration[:type_field] => self.class.name,
+              solr_configuration[:type_field] => Solr::Util.query_parser_escape(self.class.name),
               solr_configuration[:primary_key_field] => record_id(self).to_s}
 
       # iterate through the fields and add them to the document,
       configuration[:solr_fields].each do |field_name, options|
-        #field_type = configuration[:facets] && configuration[:facets].include?(field) ? :facet : :text
-        
+        next if [self.class.primary_key, "type"].include?(field_name.to_s)
+
         field_boost = options[:boost] || solr_configuration[:default_boost]
         field_type = get_solr_field_type(options[:type])
         solr_name = options[:as] || field_name
         
-        value = self.send("#{field_name}_for_solr")
-        value = set_value_if_nil(field_type) if value.to_s == ""
-        
-        # add the field to the document, but only if it's not the id field
-        # or the type field (from single table inheritance), since these
-        # fields have already been added above.
-        if field_name.to_s != self.class.primary_key and field_name.to_s != "type"
-          suffix = get_solr_field_type(field_type)
-          # This next line ensures that e.g. nil dates are excluded from the 
-          # document, since they choke Solr. Also ignores e.g. empty strings, 
-          # but these can't be searched for anyway: 
-          # http://www.mail-archive.com/solr-dev@lucene.apache.org/msg05423.html
-          next if value.nil? || value.to_s.strip.empty?
-          [value].flatten.each do |v|
-            v = set_value_if_nil(suffix) if value.to_s == ""
-            field = Solr::Field.new("#{solr_name}_#{suffix}" => ERB::Util.html_escape(v.to_s))
-            field.boost = validate_boost(field_boost)
-            doc << field
-          end
-        end
+        value = self.send("#{field_name}_for_solr") rescue nil
+        next if value.nil?
+
+        suffix = get_solr_field_type(field_type)
+        value = Array(value).map{ |v| ERB::Util.html_escape(v) } # escape each value
+        value = value.first if value.size == 1
+
+        field = Solr::Field.new(:name => "#{solr_name}_#{suffix}", :value => value)
+        processed_boost = validate_boost(field_boost)
+        field.boost = processed_boost
+        doc << field
       end
       
       add_dynamic_attributes(doc)
@@ -78,38 +69,38 @@ module ActsAsSolr #:nodoc:
       add_tags(doc)
       add_space(doc)
       
-      debug doc.to_xml
+      debug doc.to_json
       doc
     end
-    
+
     private
     
     def debug(text)
       logger.debug text rescue nil
     end
-    
+
     def add_space(doc)
       if configuration[:spatial] and local
-        doc << Solr::Field.new("lat" => local.latitude)
-        doc << Solr::Field.new("lng" => local.longitude)
+        doc << Solr::Field.new(:name => "lat_f", :value => local.latitude)
+        doc << Solr::Field.new(:name => "lng_f", :value => local.longitude)
       end
     end
     
     def add_tags(doc)
       taggings.each do |tagging|
-        doc << Solr::Field.new("tag_facet" => tagging.tag.name)
-        doc << Solr::Field.new("tag_t" => tagging.tag.name)
+        doc << Solr::Field.new(:name => "tag_facet", :value => tagging.tag.name)
+        doc << Solr::Field.new(:name => "tag_t", :value => tagging.tag.name)
       end if configuration[:taggable]
     end
     
     def add_dynamic_attributes(doc)
       dynamic_attributes.each do |attribute|
         value = ERB::Util.html_escape(attribute.value)
-        doc << Solr::Field.new("#{attribute.name}_t" => value)
-        doc << Solr::Field.new("#{attribute.name}_facet" => value)
+        doc << Solr::Field.new(:name => "#{attribute.name.downcase}_t", :value => value)
+        doc << Solr::Field.new(:name => "#{attribute.name.downcase}_facet", :value => value)
       end if configuration[:dynamic_attributes]
     end
-    
+
     def add_includes(doc)
       if configuration[:solr_includes].respond_to?(:each)
         configuration[:solr_includes].each do |association, options|
@@ -120,12 +111,13 @@ module ActsAsSolr #:nodoc:
           suffix = get_solr_field_type(field_type)
           case self.class.reflect_on_association(association).macro
           when :has_many, :has_and_belongs_to_many
-            records = self.send(association).to_a
+            records = self.send(association).compact
             unless records.empty?
               records.each {|r| data << include_value(r, options)}
-              [data].flatten.each do |value|
-                field = Solr::Field.new("#{field_name}_#{suffix}" => value)
-                field.boost = validate_boost(field_boost)
+              Array(data).each do |value|
+                field = Solr::Field.new(:name => "#{field_name}_#{suffix}", :value => value)
+                processed_boost = validate_boost(field_boost)
+                field.boost = processed_boost
                 doc << field
               end
             end
@@ -145,7 +137,13 @@ module ActsAsSolr #:nodoc:
       elsif options[:using].is_a? Symbol
         record.send(options[:using])
       else
-        record.attributes.inject([]){|k,v| k << "#{v.first}=#{ERB::Util.html_escape(v.last)}"}.join(" ")
+        if options[:fields]
+          fields = {}
+          options[:fields].each{ |f| fields[f] = record.send(f) }
+        else
+          fields = record.attributes
+        end
+        fields.map{ |k,v| ERB::Util.html_escape(v) }.join(" ")
       end
     end
 

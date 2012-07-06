@@ -1,53 +1,43 @@
 module ActsAsSolr #:nodoc:
   
   module CommonMethods
-    
+
+    TypeMapping = {
+      :double => "do",
+      :float => "f",
+      :decimal => "f",
+      :integer => "i",
+      :boolean => "b",
+      :string => "s",
+      :date => "d",
+      :range_float => "rf",
+      :range_integer => "ri",
+      :facet => "facet",
+      :text => "t",
+    }
+
     # Converts field types into Solr types
     def get_solr_field_type(field_type)
       if field_type.is_a?(Symbol)
-        case field_type
-          when :float
-            return "f"
-          when :integer
-            return "i"
-          when :boolean
-            return "b"
-          when :string
-            return "s"
-          when :date
-            return "d"
-          when :range_float
-            return "rf"
-          when :range_integer
-            return "ri"
-          when :facet
-            return "facet"
-          when :text
-            return "t"
-        else
-          raise "Unknown field_type symbol: #{field_type}"
-        end
+        t = TypeMapping[field_type]
+        raise "Unknown field_type symbol: #{field_type}" if t.nil?
+        t
       elsif field_type.is_a?(String)
         return field_type
       else
         raise "Unknown field_type class: #{field_type.class}: #{field_type}"
       end
     end
-    
-    # Sets a default value when value being set is nil.
-    def set_value_if_nil(field_type)
-      case field_type
-        when "b", :boolean
-          return "false"
-        when "s", "t", "d", :date, :string, :text
-          return ""
-        when "f", "rf", :float, :range_float
-          return 0.00
-        when "i", "ri", :integer, :range_integer
-          return 0
-      else
-        return ""
-      end
+
+    def solr_batch_add(objects)
+      solr_add objects.map{ |a| a.to_solr_doc }
+      solr_commit if defined?(configuration) and configuration[:auto_commit]
+    end
+
+    def solr_batch_add_association(ar, association)
+      result = ar.send(association)
+      result = [result] unless result.is_a?(Array)
+      solr_batch_add result
     end
     
     # Sends an add command to Solr

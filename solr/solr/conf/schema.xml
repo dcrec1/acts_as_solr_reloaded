@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<!--
+ This is the Solr schema file. This file should be named "schema.xml" and
+ should be in the conf directory under the solr home
+ (i.e. ./solr/conf/schema.xml by default)
+ or located where the classloader for the Solr webapp can find it.
+
+ This example schema is the recommended starting point for users.
+ It should be kept correct and concise, usable out-of-the-box.
+
+ For more information, on how to customize this file, please see
+ http://wiki.apache.org/solr/SchemaXml
+-->
+
+<schema name="acts_as_solr" version="0.9">
+  <types>
+    <fieldType name="id"       class="solr.StrField"            sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="facet"    class="solr.StrField"            sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="string"   class="solr.StrField"            sortMissingLast="true" omitNorms="false"/>
+
+    <fieldType name="boolean"  class="solr.BoolField"           sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="integer"  class="solr.TrieIntField"        omitNorms="false"/>
+    <fieldType name="float"    class="solr.TrieFloatField"      omitNorms="false"/>
+    <fieldType name="double"   class="solr.TrieDoubleField"     omitNorms="false"/>
+    <fieldType name="date"     class="solr.TrieDateField"       sortMissingLast="true" omitNorms="false"/>
+
+    <!-- sortable versions -->
+    <fieldType name="sstring" class="solr.TextField"           sortMissingLast="true"  omitNorms="false">
+      <analyzer>
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <filter class="solr.TrimFilterFactory" />
+        <filter class="solr.LowerCaseFilterFactory" />
+        <filter class="solr.ASCIIFoldingFilterFactory"/>
+      </analyzer>
+    </fieldType>
+    <fieldType name="sinteger" class="solr.SortableIntField"    sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="sfloat"   class="solr.SortableFloatField"  sortMissingLast="true" omitNorms="false"/>
+    <fieldType name="sdouble"  class="solr.SortableDoubleField" sortMissingLast="true" omitNorms="false"/>
+
+    <fieldType name="text"     class="solr.TextField" autoGeneratePhraseQueries="false">
+      <analyzer type="index">
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+
+        <filter class="solr.ASCIIFoldingFilterFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+
+        <filter class="solr.StopFilterFactory" words="stopwords.pt.txt" />
+
+        <!-- stemming
+        -->
+        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.pt.txt" />
+        <filter class="solr.PortugueseStemFilterFactory" />
+        <filter class="solr.PorterStemFilterFactory" />
+        <!-- too slow
+        <filter class="solr.HunspellStemFilterFactory" dictionary="en_US.dic" affix="en_US.aff" ignoreCase="true" />
+        <filter class="solr.HunspellStemFilterFactory" dictionary="pt_PT.dic" affix="pt_PT.aff" ignoreCase="true" />
+        -->
+
+        <!-- improvised stemming
+        <filter class="solr.EdgeNGramFilterFactory" minGramSize="3" maxGramSize="20" side="front"/>
+        -->
+      </analyzer>
+      <analyzer type="query">
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+
+        <filter class="solr.ASCIIFoldingFilterFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+
+        <filter class="solr.StopFilterFactory" words="stopwords.pt.txt" />
+
+        <!-- stemming
+        -->
+        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.pt.txt" />
+        <filter class="solr.PortugueseStemFilterFactory" />
+        <filter class="solr.PorterStemFilterFactory" />
+        <!-- too slow
+        <filter class="solr.HunspellStemFilterFactory" dictionary="en_US.dic" affix="en_US.aff" ignoreCase="true" />
+        <filter class="solr.HunspellStemFilterFactory" dictionary="pt_PT.dic" affix="pt_PT.aff" ignoreCase="true" />
+        -->
+
+        <!-- improvised stemming
+        <filter class="solr.EdgeNGramFilterFactory" minGramSize="3" maxGramSize="20" side="front"/>
+        -->
+      </analyzer>
+    </fieldType>
+    
+    <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100" >
+      <analyzer>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
+      </analyzer>
+    </fieldType>
+
+    <fieldType name="location"  class="solr.LatLonType" subFieldSuffix="_coordinate"/>
+
+    <fieldtype name="text_zh"   class="solr.TextField">
+      <analyzer class="org.apache.lucene.analysis.cn.ChineseAnalyzer"/>
+    </fieldtype>
+
+    <!-- The "RandomSortField" is not used to store or search any
+         data.  You can declare fields of this type it in your schema
+         to generate pseudo-random orderings of your docs for sorting 
+         purposes.  The ordering is generated based on the field name 
+         and the version of the index, As long as the index version
+         remains unchanged, and the same field name is reused,
+         the ordering of the docs will be consistent.  
+         If you want different psuedo-random orderings of documents,
+         for the same version of the index, use a dynamicField and
+         change the name
+     -->
+    <fieldType name="random" class="solr.RandomSortField" indexed="true" />
+ </types>
+
+
+ <fields>
+   <field        name="latlng"              type="location"  indexed="true"  stored="true" />
+   <field        name="latlng_0_coordinate" type="sdouble"   indexed="true"  stored="true"  multiValued="false"/>
+   <field        name="latlng_1_coordinate" type="sdouble"   indexed="true"  stored="true"  multiValued="false"/>
+
+   <field        name="id"                  type="id"        indexed="true"  stored="true"  multiValued="true" required="true"/>
+   <field        name="_id_s"               type="id"        indexed="true"  stored="true"  multiValued="true"/>
+   <field        name="pk_i"                type="integer"   indexed="true"  stored="true"  multiValued="true"/>
+   <field        name="pk_s"                type="id"        indexed="true"  stored="true"  multiValued="true"/>
+   <field        name="type_s"              type="string"    indexed="true"  stored="true"  multiValued="true" required="true"/>
+
+    <!-- sortable versions -->
+   <dynamicField name="*sortable_s"         type="sstring"   indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*sortable_i"         type="sinteger"  indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*sortable_f"         type="sfloat"    indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*sortable_do"        type="sdouble"   indexed="true"  stored="false" multiValued="false"/>
+
+   <dynamicField name="*_t"                 type="text"      indexed="true"  stored="true"  multiValued="true"/>
+   <dynamicField name="*_s"                 type="text"      indexed="true"  stored="true"  multiValued="false"/>
+   <dynamicField name="*_i"                 type="integer"   indexed="true"  stored="false" multiValued="true"/>
+   <dynamicField name="*_f"                 type="float"     indexed="true"  stored="true"  multiValued="false"/>
+   <dynamicField name="*_do"                type="double"    indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*_b"                 type="boolean"   indexed="true"  stored="false" multiValued="true"/>
+   <dynamicField name="*_d"                 type="date"      indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*_ri"                type="sinteger"  indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*_rf"                type="sfloat"    indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*_r"                 type="random"    indexed="true"  stored="false" multiValued="false"/>
+   <dynamicField name="*_facet"             type="facet"     indexed="true"  stored="false" multiValued="true"/>
+
+   <field        name="lat"                 type="sdouble"   indexed="true"  stored="true"/>
+   <field        name="lng"                 type="sdouble"   indexed="true"  stored="true"/>
+   <dynamicField name="_local*"             type="sdouble"   indexed="true"  stored="true"/> <!-- used internally by localsolr -->
+   <field        name="geo_distance"        type="sdouble"/> <!-- Optional but used for distributed searching -->
+
+   <field        name="text"                type="text"      indexed="true"  stored="false" multiValued="true"/>
+   <field        name="spell"               type="textSpell" indexed="true"  stored="true"  multiValued="true"/>
+
+   <dynamicField name="*_s_mv"              type="string"    indexed="true"  stored="false" multiValued="true"/>
+   <dynamicField name="*_zh_text"           type="text_zh"   indexed="true"  stored="false" multiValued="true"/>
+   <dynamicField name="*_display"           type="text"      indexed="false" stored="true"  multiValued="true"/>
+
+ </fields>
+
+ <uniqueKey>id</uniqueKey>
+
+ <defaultSearchField>text</defaultSearchField>
+ <copyField source="*_s"     dest="text"/>
+ <copyField source="*_t"     dest="text"/>
+ <copyField source="*_i"     dest="text"/>
+ <copyField source="*_f"     dest="text"/>
+ <copyField source="*_d"     dest="text"/>
+ <copyField source="*_do"    dest="text"/>
+ <copyField source="*_facet" dest="text"/>
+
+ <copyField source="*_s"     dest="spell"/>
+ <copyField source="*_t"     dest="spell"/>
+ <copyField source="*_facet" dest="spell"/>
+
+ <copyField source="lat_f" dest="latlng_0_coordinate"/>
+ <copyField source="lng_f" dest="latlng_1_coordinate"/>
+
+ <solrQueryParser defaultOperator="AND"/>
+
+</schema>
+
