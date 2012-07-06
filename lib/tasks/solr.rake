@@ -98,7 +98,7 @@ namespace :solr do
       alias_method :solr_optimize, :blank
     end
     
-    models = includes.select { |m| m.respond_to?(:rebuild_solr_index) }    
+    models = includes.select { |m| m.respond_to?(:rebuild_solr_index) }
     models.each do |model|
   
       if clear_first
@@ -108,9 +108,11 @@ namespace :solr do
       end
       
       puts "Rebuilding index for #{model}..."
-      model.rebuild_solr_index(batch_size)
+      model.rebuild_solr_index(batch_size) do |ar, options|
+        ar.default_solr_scope.find(:all, options.merge({:order => ar.primary_key}))
+      end
 
-    end 
+    end
 
     if models.empty?
       puts "There were no models to reindex."

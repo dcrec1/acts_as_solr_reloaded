@@ -178,7 +178,9 @@ module ActsAsSolr #:nodoc:
 
       after_save    :solr_save
       after_destroy :solr_destroy
-
+      
+      scope :default_solr_scope, scoped
+      
       if deferred_solr_configuration
         self.deferred_solr_configuration = deferred_solr_configuration
       else
