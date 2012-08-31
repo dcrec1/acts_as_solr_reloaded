@@ -4,9 +4,6 @@ require "fileutils"
 require "yaml"
 require 'net/http'
 
-dir = File.dirname(__FILE__)
-SOLR_PATH = File.expand_path("#{dir}/../solr") unless defined? SOLR_PATH
-
 unless defined? RAILS_ROOT
   # define RAILS_ROOT for test environment
   RAILS_ROOT = defined?(Rails) ? Rails.root : File.expand_path("#{File.dirname(__FILE__)}/../test")

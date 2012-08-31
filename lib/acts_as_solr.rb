@@ -6,6 +6,9 @@ require 'time'
 require 'erb'
 require 'rexml/xpath'
 
+dir = File.dirname(__FILE__)
+SOLR_PATH = File.expand_path("#{dir}/../solr") unless defined? SOLR_PATH
+
 require File.dirname(__FILE__) + '/solr'
 require File.dirname(__FILE__) + '/acts_as_solr/acts_methods'
 require File.dirname(__FILE__) + '/acts_as_solr/common_methods'
