@@ -7,13 +7,10 @@ namespace :solr do
   SOLR_URL = "#{APACHE_MIRROR}/lucene/solr/#{SOLR_VERSION}/#{SOLR_FILENAME}" 
   SOLR_DIR = "apache-solr-#{SOLR_VERSION}" 
 
-  # change path if it is on testing environment
-  PLUGIN_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../..")
-
   def solr_downloaded?
-    File.exists?("#{PLUGIN_ROOT}/solr/start.jar")
+    File.exists?("#{SOLR_PATH}/start.jar")
   end
-
+  
   desc "Download and install Solr+Jetty #{SOLR_VERSION}."
   task :download do
     abort 'Solr already downloaded.' if solr_downloaded?
@@ -27,16 +24,16 @@ namespace :solr do
         sh "tar xzf apache-solr-#{SOLR_VERSION}.tgz"
         cd "apache-solr-#{SOLR_VERSION}/example"
 
-        cp_r ['../LICENSE.txt', '../NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'], "#{PLUGIN_ROOT}/solr", :verbose => true
+        cp_r ['../LICENSE.txt', '../NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'], SOLR_PATH, :verbose => true
         cd 'solr'
-        cp_r ['README.txt', 'bin', 'solr.xml'], "#{PLUGIN_ROOT}/solr/solr", :verbose => true
+        cp_r ['README.txt', 'bin', 'solr.xml'], "#{SOLR_PATH}/solr", :verbose => true
       end
     end
   end
 
   desc 'Remove Solr instalation from the tree.'
   task :remove do
-    solr_root = "#{PLUGIN_ROOT}/solr/"
+    solr_root = SOLR_PATH
     rm_r ['README.txt', 'bin', 'solr.xml'].map{ |i| File.join(solr_root, 'solr', i) }, :verbose => true, :force => true
     rm_r ['LICENSE.txt', 'NOTICE.txt', 'README.txt', 'etc', 'lib', 'start.jar', 'webapps', 'work'].map{ |i| File.join(solr_root, i) }, :verbose => true, :force => true
   end
@@ -48,7 +45,7 @@ namespace :solr do
   desc 'Starts Solr. Options accepted: RAILS_ENV=your_env, PORT=XX. Defaults to development if none.'
   task :start do
     if !solr_downloaded?
-      puts "ERROR: Can't find Solr on the source code! Please run 'rake solr:download'."
+      puts "ERROR: Can't find Solr on the source code! Please run 'rake solr:download SOLR_PATH=#{SOLR_PATH}'."
       return
     end
 
@@ -167,7 +164,7 @@ namespace :solr do
     models.each do |model|
       if clear_first
         puts "Clearing index for #{model}..."
-        ActsAsSolr::Post.execute(Solr::Request::Delete.new(:query => "#{model.solr_configuration[:type_field]}:#{Solr::Util.query_parser_escape(model.name)}"))
+        ActsAsSolr::Post.execute(Solr::Request::Delete.new(:query => "#{model.solr_configuration[:type_field]}:\"#{model.name}\""))
         ActsAsSolr::Post.execute(Solr::Request::Commit.new)
       end
       
