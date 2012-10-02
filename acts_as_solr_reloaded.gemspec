@@ -14,8 +14,7 @@ Gem::Specification.new do |s|
   s.email = %q{dc.rec1@gmail.com}
   s.extra_rdoc_files = [
     "LICENSE",
-    "README.markdown",
-    "README.rdoc"
+    "README.markdown"
   ]
   s.files = [
     "LICENSE",
@@ -87,7 +86,6 @@ Gem::Specification.new do |s|
     "lib/solr/response/spellcheck.rb",
     "lib/solr/response/standard.rb",
     "lib/solr/response/xml.rb",
-    "lib/solr/solrtasks.rb",
     "lib/solr/util.rb",
     "lib/solr/xml.rb",
     "lib/tasks/database.rake",
@@ -107,7 +105,6 @@ Gem::Specification.new do |s|
     "test/db/migrate/009_create_dynamic_attributes.rb",
     "test/db/migrate/010_create_advertises.rb",
     "test/db/migrate/011_create_locals.rb",
-    "test/db/test.db",
     "test/fixtures/advertises.yml",
     "test/fixtures/authors.yml",
     "test/fixtures/books.yml",
@@ -115,7 +112,6 @@ Gem::Specification.new do |s|
     "test/fixtures/db_definitions/mysql.sql",
     "test/fixtures/dynamic_attributes.yml",
     "test/fixtures/electronics.yml",
-    "test/fixtures/locals.yml",
     "test/fixtures/movies.yml",
     "test/fixtures/postings.yml",
     "test/functional/acts_as_solr_test.rb",
@@ -130,7 +126,6 @@ Gem::Specification.new do |s|
     "test/models/dynamic_attribute.rb",
     "test/models/electronic.rb",
     "test/models/gadget.rb",
-    "test/models/local.rb",
     "test/models/movie.rb",
     "test/models/novel.rb",
     "test/models/post.rb",
