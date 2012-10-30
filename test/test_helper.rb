@@ -31,6 +31,12 @@ RAILS_ENV  = 'test' unless defined? RAILS_ENV
 ENV["RAILS_ENV"] = "test"
 
 require File.expand_path(File.dirname(__FILE__) + '/../config/solr_environment')
+
+require "active_record"
+DB = (ENV['DB'] ? ENV['DB'] : 'sqlite') unless defined?(DB)
+MYSQL_USER = (ENV['MYSQL_USER'].nil? ? 'root' : ENV['MYSQL_USER']) unless defined? MYSQL_USER
+require File.join(File.dirname(File.expand_path(__FILE__)), 'db', 'connections', DB, 'connection.rb')
+
 require File.expand_path(File.dirname(__FILE__) + '/../lib/acts_as_solr')
 
 # Load Models
