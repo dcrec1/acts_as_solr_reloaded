@@ -38,6 +38,12 @@ begin
 rescue LoadError => e # If we can't load either rubygems or libxml-ruby
   # Just use REXML.
   require 'rexml/document'
-  Solr::XML::Element = REXML::Element
-  
+  class Solr::XML::Element < REXML::Element
+    def initialize(arg = UNDEFINED, parent=nil, context=nil)
+      super(arg, parent, context)
+      @context ||= {}
+      @context[:raw] = :all if @context[:raw].nil?
+    end
+  end
+
 end
