@@ -6,17 +6,17 @@
 development:
   url: http://0.0.0.0:8982/solr
   jvm_options: -server -Xmx128M -Xms16M
-  timeout: 0
+  timeout: 60
   
 production:
   url: http://127.0.0.1:8983/solr
   jvm_options: -server -Xmx192M -Xms64M
-  timeout: 0
+  timeout: 60
 
 test: &TEST
   url: http://0.0.0.0:8981/solr
   jvm_options: -server -Xmx128M -Xms16M
-  timeout: 0
+  timeout: 60
 
 cucumber:
   <<: *TEST
