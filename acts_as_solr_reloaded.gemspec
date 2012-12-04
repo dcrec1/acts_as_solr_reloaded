@@ -19,7 +19,6 @@ Gem::Specification.new do |s|
   s.files = [
     "LICENSE",
     "README.markdown",
-    "README.rdoc",
     "Rakefile",
     "TESTING_THE_PLUGIN",
     "VERSION",
@@ -171,7 +170,6 @@ Gem::Specification.new do |s|
     "test/models/dynamic_attribute.rb",
     "test/models/electronic.rb",
     "test/models/gadget.rb",
-    "test/models/local.rb",
     "test/models/movie.rb",
     "test/models/novel.rb",
     "test/models/post.rb",
