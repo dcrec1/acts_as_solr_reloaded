@@ -176,8 +176,14 @@ module ActsAsSolr #:nodoc:
         ids.collect {|id| ActsAsSolr::LazyDocument.new(id, self)}
       elsif configuration[:format] == :objects
         find_options = options[:sql_options] || {}
-        find_options[:conditions] = self.send :merge_conditions, {self.primary_key => ids}, (find_options[:conditions] || [])
-        result = self.all(find_options) || []
+        
+        if self.respond_to?(:where)
+          result = self.where(self.primary_key => ids).where(find_options[:conditions])
+        else
+          find_options[:conditions] = self.send :merge_conditions, {self.primary_key => ids}, (find_options[:conditions] || [])
+          result = self.all(find_options) || []
+        end
+            
         result = reorder(result, ids) unless find_options[:order]
         result
       else
