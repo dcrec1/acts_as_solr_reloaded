@@ -54,7 +54,7 @@ ActsAsSolr implements in SearchResults class an interface compatible with will_p
 In your tests
 ======
 To test code that uses `acts_as_solr` you must start a Solr server for the test environment.
-You can add to the beggining of your test/test_helper.rb the code:
+You can add to the beginning of your test/test_helper.rb the code:
 
     ENV["RAILS_ENV"] = "test"
     abort unless system 'rake solr:start' 
