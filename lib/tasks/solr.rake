@@ -1,9 +1,9 @@
 namespace :solr do
 
   APACHE_MIRROR = ENV['APACHE_MIRROR'] || "http://ftp.unicamp.br/pub/apache"
-  SOLR_VERSION = '3.6.0'
+  SOLR_VERSION = '3.6.2'
   SOLR_FILENAME = "apache-solr-#{SOLR_VERSION}.tgz" 
-  SOLR_MD5SUM = 'ac11ef4408bb015aa3a5eefcb1047aec'
+  SOLR_MD5SUM = 'e9c51f51265b070062a9d8ed50b84647'
   SOLR_URL = "#{APACHE_MIRROR}/lucene/solr/#{SOLR_VERSION}/#{SOLR_FILENAME}" 
   SOLR_DIR = "apache-solr-#{SOLR_VERSION}" 
 
